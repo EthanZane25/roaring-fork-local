@@ -1,115 +1,98 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Home, MapPinned, ShoppingBag, Trophy, UtensilsCrossed, BriefcaseBusiness } from "lucide-react";
-import { HeroSearch } from "@/components/hero-search";
-import { TownStrip } from "@/components/town-strip";
-import { SectionHeading } from "@/components/section-heading";
-import { RestaurantCard } from "@/components/restaurant-card";
-import { ListingCard } from "@/components/listing-card";
-import { VotePanel } from "@/components/vote-panel";
-import { getEvents, getListings, getPolls, getRestaurants } from "@/lib/data";
-import { getTown } from "@/lib/constants";
+import { PrimaryNav } from "@/components/primary-nav";
+import { getEvents, getRestaurants } from "@/lib/data";
+import { cuisineLabel, getTown } from "@/lib/constants";
 
-const sections = [
-  { label: "Restaurants", href: "/restaurants", icon: UtensilsCrossed, copy: "Menus, hours, prices and local votes." },
-  { label: "Marketplace", href: "/marketplace", icon: ShoppingBag, copy: "Buy, sell and find free stuff nearby." },
-  { label: "Vote", href: "/vote", icon: Trophy, copy: "One-account community voting." },
-  { label: "Events", href: "/events", icon: CalendarDays, copy: "What's happening across the valley." },
-  { label: "Jobs", href: "/jobs", icon: BriefcaseBusiness, copy: "Local work without the national noise." },
-  { label: "Housing", href: "/housing", icon: Home, copy: "Rooms, rentals and housing wanted." }
-];
+function eventTime(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Denver"
+  }).format(new Date(value));
+}
 
-export default async function HomePage() {
-  const [restaurants, listings, polls, events] = await Promise.all([
-    getRestaurants({ limit: 6 }),
-    getListings({ limit: 4 }),
-    getPolls(),
-    getEvents()
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ town?: string }> }) {
+  const { town } = await searchParams;
+  const [events, sponsors] = await Promise.all([
+    getEvents({ town, limit: 3, todayOnly: true }),
+    getRestaurants({ town, advertiserOnly: true, limit: 3 })
   ]);
 
   return (
     <main>
-      <section className="border-b border-black/5 py-16 sm:py-24">
-        <div className="container-site text-center">
-          <p className="eyebrow">Aspen · Snowmass · Basalt · Carbondale · Glenwood · Rifle</p>
-          <h1 className="text-balance mx-auto mt-4 max-w-5xl text-5xl font-black leading-[.97] tracking-[-.055em] sm:text-7xl">
-            One local source for the whole valley.
-          </h1>
-          <p className="text-balance mx-auto mt-6 max-w-2xl text-base leading-7 text-[#596159] sm:text-lg">
-            Find where to eat, what is for sale, who is hiring, what's happening tonight and what locals actually recommend.
-          </p>
-          <HeroSearch />
-          <div className="mt-8">
-            <TownStrip />
+      <section className="bg-white">
+        <div className="container-site py-12 sm:py-16">
+          <div className="max-w-4xl">
+            <h1 className="text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">Local life, all in one place.</h1>
+            <p className="mt-4 max-w-3xl text-[16px] leading-7 text-[#5f665f] sm:text-lg">
+              Food, classifieds, jobs, housing, and local votes from Aspen to Rifle.
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="container-site py-12">
-        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-          {sections.map(({ label, href, icon: Icon, copy }) => (
-            <Link key={href} href={href} className="card group p-5 transition hover:-translate-y-1 hover:border-[#163b2d]/30">
-              <Icon size={22} className="text-[#b8502f]" />
-              <h2 className="mt-5 font-black">{label}</h2>
-              <p className="mt-2 text-xs leading-5 text-[#677067]">{copy}</p>
-              <ArrowRight size={16} className="mt-4 text-[#163b2d] transition group-hover:translate-x-1" />
+      <section className="border-y border-[#dedfd9] bg-white">
+        <div className="container-site">
+          <PrimaryNav town={town} />
+        </div>
+      </section>
+
+      <section className="container-site py-10 sm:py-12">
+        <div className="flex items-baseline justify-between gap-4 border-b border-[#d6d8d2] pb-3">
+          <h2 className="text-2xl font-semibold tracking-[-0.02em]">Tonight</h2>
+          <Link href={town ? `/events?town=${town}` : "/events"} className="text-sm font-semibold text-[#315e49] hover:underline">See all events →</Link>
+        </div>
+        <div className="bg-white">
+          {events.map((event, index) => (
+            <Link
+              key={event.id}
+              href={town ? `/events?town=${town}` : "/events"}
+              className={`grid gap-2 py-4 hover:bg-[#f7f6f2] sm:grid-cols-[160px_1fr_120px] sm:items-center ${index ? "border-t border-[#e2e3de]" : ""}`}
+            >
+              <span className="text-[13px] font-semibold text-[#6a706b]">{getTown(event.town)?.name}</span>
+              <strong className="text-[16px] font-semibold">{event.title}</strong>
+              <span className="text-[13px] text-[#5f665f] sm:text-right">{eventTime(event.startsAt)}</span>
             </Link>
           ))}
+          {!events.length ? <p className="py-5 text-sm text-[#666d67]">No events are listed for this town tonight yet.</p> : null}
         </div>
       </section>
 
-      <section className="container-site py-10">
-        <SectionHeading eyebrow="Eat local" title="Restaurants people are talking about" href="/restaurants" />
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {restaurants.map((restaurant) => <RestaurantCard key={restaurant.id} restaurant={restaurant} />)}
-        </div>
-      </section>
-
-      <section className="container-site grid gap-6 py-10 lg:grid-cols-[1.55fr_.85fr]">
-        <div>
-          <SectionHeading eyebrow="Marketplace" title="New near you" href="/marketplace" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            {listings.map((listing) => <ListingCard key={listing.id} listing={listing} />)}
+      {sponsors.length ? (
+        <section className="container-site pb-12 pt-2 sm:pb-16">
+          <div className="flex items-baseline justify-between gap-4 border-b border-[#d6d8d2] pb-3">
+            <h2 className="text-xl font-semibold tracking-[-0.02em]">Sponsored</h2>
+            <span className="text-[12px] text-[#777d78]">Paid advertising</span>
           </div>
-        </div>
-        <div>
-          {polls[0] ? <VotePanel poll={polls[0]} /> : null}
-        </div>
-      </section>
-
-      <section className="container-site py-10">
-        <SectionHeading eyebrow="Today & next" title="Around the valley" href="/events" />
-        <div className="card divide-y divide-[#e2e2dc]">
-          {events.slice(0, 5).map((event) => (
-            <div key={event.id} className="flex items-center justify-between gap-4 p-5">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[.12em] text-[#b8502f]">{getTown(event.town)?.name}</p>
-                <h3 className="mt-1 font-black">{event.title}</h3>
-                <p className="mt-1 text-sm text-[#677067]">{event.venue}</p>
-              </div>
-              <div className="rounded-xl bg-[#f2f0ea] px-3 py-2 text-right text-xs font-bold">
-                {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Denver" }).format(new Date(event.startsAt))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="container-site py-12">
-        <div className="overflow-hidden rounded-[28px] bg-[#163b2d] p-8 text-white sm:p-12">
-          <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto]">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[.16em] text-[#d8b69f]">Built for locals</p>
-              <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-[-.04em] sm:text-4xl">One account. The entire Aspen-to-Rifle corridor.</h2>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70">
-                Post a classified, save restaurants, vote once in community polls, follow local events and keep your town view relevant.
-              </p>
-            </div>
-            <Link href="/account" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-black text-[#163b2d]">
-              <MapPinned size={17} /> Create an account
-            </Link>
+          <div className="grid gap-4 pt-5 md:grid-cols-3">
+            {sponsors.map((restaurant) => (
+              <article key={restaurant.id} className="border border-[#dedfd9] bg-white">
+                <Link href={`/restaurants/${restaurant.slug}`} className="block">
+                  <div className="relative aspect-[16/9] overflow-hidden bg-[#ecece7]">
+                    {restaurant.imageUrl ? (
+                      <Image
+                        src={restaurant.imageUrl}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="p-4">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8a5a31]">Sponsored</span>
+                    <h3 className="mt-1 text-[17px] font-semibold leading-5">{restaurant.name}</h3>
+                    <p className="mt-2 text-[13px] text-[#666d67]">
+                      {getTown(restaurant.town)?.name} · {cuisineLabel(restaurant.cuisine)} · {"$".repeat(restaurant.priceLevel)}
+                    </p>
+                  </div>
+                </Link>
+              </article>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
     </main>
   );
 }

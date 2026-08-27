@@ -1,7 +1,8 @@
-import { demoBlogPosts, demoEvents, demoHousing, demoJobs, demoListings, demoPolls, demoRestaurants } from "@/lib/demo-data";
-import type { BlogPost, EventItem, Housing, Job, MarketplaceListing, Poll, Restaurant } from "@/lib/types";
+import { demoBlogPosts, demoContest, demoEvents, demoHousing, demoJobs, demoListings, demoRestaurants } from "@/lib/demo-data";
+import type { BlogPost, Contest, Cuisine, EventItem, Housing, Job, MarketplaceListing, Restaurant } from "@/lib/types";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, hasSupabaseServiceRole } from "@/lib/supabase/admin";
 
 function restaurantMatchesCategory(restaurant: Restaurant, category?: string) {
   if (!category) return true;
@@ -14,10 +15,12 @@ function restaurantMatchesCategory(restaurant: Restaurant, category?: string) {
   );
 }
 
-export async function getRestaurants(input?: { town?: string; category?: string; limit?: number }) {
+export async function getRestaurants(input?: { town?: string; category?: string; cuisine?: string; advertiserOnly?: boolean; limit?: number }) {
   if (!hasSupabaseEnv()) {
     return demoRestaurants
       .filter((r) => !input?.town || r.town === input.town)
+      .filter((r) => !input?.cuisine || r.cuisine === input.cuisine)
+      .filter((r) => !input?.advertiserOnly || r.isAdvertiser)
       .filter((r) => restaurantMatchesCategory(r, input?.category))
       .slice(0, input?.limit ?? 100);
   }
@@ -27,9 +30,11 @@ export async function getRestaurants(input?: { town?: string; category?: string;
     .from("restaurants")
     .select("*")
     .eq("published", true)
-    .order("local_votes", { ascending: false });
+    .order("name", { ascending: true });
 
   if (input?.town) query = query.eq("town_slug", input.town);
+  if (input?.cuisine) query = query.eq("primary_cuisine", input.cuisine);
+  if (input?.advertiserOnly) query = query.eq("is_advertiser", true);
   if (input?.category === "open-now") query = query.eq("open_now", true);
   else if (input?.category === "cheap-eats") query = query.lte("price_level", 2);
   else if (input?.category) {
@@ -81,24 +86,103 @@ export async function getListing(slug: string) {
   return data ? mapListing(data) : null;
 }
 
-export async function getPolls(): Promise<Poll[]> {
-  if (!hasSupabaseEnv()) return demoPolls;
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("polls")
-    .select("id, slug, title, description, closes_at, poll_options(id,label,town_slug,restaurant_id,vote_count)")
-    .eq("published", true)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []).map((p: any) => ({
-    id: p.id, slug: p.slug, title: p.title, description: p.description,
-    closesAt: p.closes_at ?? undefined,
-    options: (p.poll_options ?? []).map((o: any) => ({
-      id: o.id, label: o.label, town: o.town_slug ?? undefined, votes: o.vote_count ?? 0, restaurantId: o.restaurant_id ?? undefined
-    }))
-  }));
+async function contestVoteCounts(contestId: string) {
+  const counts = new Map<string, number>();
+  if (!hasSupabaseServiceRole()) return counts;
+
+  const admin = createAdminClient();
+  const { data: votes, error } = await admin
+    .from("restaurant_votes")
+    .select("restaurant_id,user_id")
+    .eq("contest_id", contestId)
+    .eq("status", "counted");
+  if (error || !votes?.length) return counts;
+
+  const userIds = Array.from(new Set(votes.map((vote: any) => vote.user_id)));
+  const { data: users } = await admin
+    .from("users")
+    .select("id")
+    .in("id", userIds)
+    .is("banned_at", null)
+    .not("email_verified_at", "is", null)
+    .not("phone_verified_at", "is", null);
+  const validUsers = new Set((users ?? []).map((user: any) => user.id));
+
+  for (const vote of votes) {
+    if (!validUsers.has(vote.user_id)) continue;
+    counts.set(vote.restaurant_id, (counts.get(vote.restaurant_id) ?? 0) + 1);
+  }
+  return counts;
 }
 
+async function mapContestRow(row: any): Promise<Contest> {
+  const supabase = await createClient();
+  const { data: eligible, error: eligibleError } = await supabase
+    .from("contest_restaurants")
+    .select("restaurant_id")
+    .eq("contest_id", row.id);
+  if (eligibleError) throw eligibleError;
+
+  const restaurantIds = (eligible ?? []).map((item: any) => item.restaurant_id);
+  const counts = await contestVoteCounts(row.id);
+  if (!restaurantIds.length) {
+    return { id: row.id, slug: row.slug, title: row.title, startsAt: row.starts_at, endsAt: row.ends_at, status: row.status, restaurants: [] };
+  }
+
+  const { data: restaurants, error: restaurantsError } = await supabase
+    .from("restaurants")
+    .select("id,slug,name,town_slug,primary_cuisine")
+    .in("id", restaurantIds)
+    .eq("published", true)
+    .order("name");
+  if (restaurantsError) throw restaurantsError;
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    status: row.status,
+    restaurants: (restaurants ?? []).map((restaurant: any) => ({
+      restaurantId: restaurant.id,
+      slug: restaurant.slug,
+      name: restaurant.name,
+      town: restaurant.town_slug,
+      cuisine: (restaurant.primary_cuisine || "other") as Cuisine,
+      votes: counts.get(restaurant.id) ?? 0
+    }))
+  };
+}
+
+export async function getCurrentContest(): Promise<Contest | null> {
+  if (!hasSupabaseEnv()) return demoContest;
+  const supabase = await createClient();
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("contests")
+    .select("id,slug,title,starts_at,ends_at,status")
+    .eq("status", "open")
+    .lte("starts_at", now)
+    .gt("ends_at", now)
+    .order("starts_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapContestRow(data) : null;
+}
+
+export async function getContest(slug: string): Promise<Contest | null> {
+  if (!hasSupabaseEnv()) return demoContest.slug === slug ? demoContest : null;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("contests")
+    .select("id,slug,title,starts_at,ends_at,status")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapContestRow(data) : null;
+}
 
 export async function getBlogPosts(input?: { limit?: number; town?: string }): Promise<BlogPost[]> {
   if (!hasSupabaseEnv()) {
@@ -134,12 +218,38 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
   return data ? mapBlogPost(data) : null;
 }
 
-export async function getEvents(): Promise<EventItem[]> {
-  if (!hasSupabaseEnv()) return demoEvents;
+function denverDayKey(value: string | Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "America/Denver"
+  }).format(typeof value === "string" ? new Date(value) : value);
+}
+
+export async function getEvents(input?: { town?: string; limit?: number; todayOnly?: boolean }): Promise<EventItem[]> {
+  const limit = input?.limit ?? 50;
+  const today = denverDayKey(new Date());
+
+  if (!hasSupabaseEnv()) {
+    return demoEvents
+      .filter((event) => new Date(event.startsAt).getTime() >= Date.now())
+      .filter((event) => !input?.town || event.town === input.town)
+      .filter((event) => !input?.todayOnly || denverDayKey(event.startsAt) === today)
+      .slice(0, limit);
+  }
+
   const supabase = await createClient();
-  const { data, error } = await supabase.from("events").select("*").eq("published", true).gte("starts_at", new Date().toISOString()).order("starts_at").limit(50);
+  let query = supabase.from("events").select("*").eq("published", true).gte("starts_at", new Date().toISOString()).order("starts_at");
+  if (input?.town) query = query.eq("town_slug", input.town);
+  query = query.limit(input?.todayOnly ? 100 : limit);
+  const { data, error } = await query;
   if (error) throw error;
-  return (data ?? []).map((e: any) => ({ id: e.id, title: e.title, town: e.town_slug, venue: e.venue, startsAt: e.starts_at, category: e.category_slug }));
+
+  const events = (data ?? []).map((e: any) => ({ id: e.id, title: e.title, town: e.town_slug, venue: e.venue, startsAt: e.starts_at, category: e.category_slug }));
+  return events
+    .filter((event) => !input?.todayOnly || denverDayKey(event.startsAt) === today)
+    .slice(0, limit);
 }
 
 export async function getJobs(): Promise<Job[]> {
@@ -168,6 +278,7 @@ function mapRestaurant(row: any): Restaurant {
     phone: row.phone ?? undefined,
     website: row.website ?? undefined,
     description: row.description ?? "",
+    cuisine: (row.primary_cuisine || "other") as Cuisine,
     cuisines: row.cuisines ?? [],
     meals: row.meals ?? [],
     priceLevel: row.price_level ?? 2,
