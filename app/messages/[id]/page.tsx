@@ -25,12 +25,12 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
   return (
     <main className="container-site max-w-3xl py-12">
       <p className="eyebrow">Conversation</p>
-      <h1 className="mt-3 text-3xl font-black">{(conversation as any).marketplace_listings?.title || "Marketplace message"}</h1>
+      <h1 className="mt-3 text-3xl font-semibold">{(conversation as any).marketplace_listings?.title || "Marketplace message"}</h1>
       <div className="card mt-8 p-5">
         <div className="grid gap-3">
           {(messages ?? []).map((message) => {
             const mine = message.sender_id === user.id;
-            return <div key={message.id} className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 ${mine ? "ml-auto bg-[#163b2d] text-white" : "bg-[#efeee8]"}`}>{message.body}</div>;
+            return <div key={message.id} className={`max-w-[82%] rounded-md px-4 py-3 text-sm leading-6 ${mine ? "ml-auto bg-[#163b2d] text-white" : "bg-[#efeee8]"}`}>{message.body}</div>;
           })}
           {!messages?.length ? <p className="text-sm text-[#626a62]">Start the conversation below.</p> : null}
         </div>

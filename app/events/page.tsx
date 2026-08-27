@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { CalendarDays, MapPin } from "lucide-react";
 import { getEvents } from "@/lib/data";
 import { getTown } from "@/lib/constants";
 
@@ -8,31 +7,51 @@ export const metadata: Metadata = {
   description: "Local events, live music and community happenings from Aspen to Rifle."
 };
 
-export default async function EventsPage() {
-  const events = await getEvents();
+function dayKey(value: string) {
+  return new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "America/Denver" }).format(new Date(value));
+}
+
+function dayLabel(value: string) {
+  return new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "America/Denver" }).format(new Date(value));
+}
+
+function timeLabel(value: string) {
+  return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Denver" }).format(new Date(value));
+}
+
+export default async function EventsPage({ searchParams }: { searchParams: Promise<{ town?: string }> }) {
+  const { town } = await searchParams;
+  const events = await getEvents({ town });
+  const groups = events.reduce<Record<string, typeof events>>((acc, event) => {
+    const key = dayKey(event.startsAt);
+    (acc[key] ||= []).push(event);
+    return acc;
+  }, {});
+
   return (
-    <main className="container-site py-12">
-      <p className="eyebrow">What's happening</p>
-      <h1 className="mt-3 text-4xl font-black tracking-[-.045em] sm:text-5xl">Events across the valley</h1>
-      <div className="mt-10 card divide-y divide-[#e1e2dc]">
-        {events.map((event) => (
-          <article key={event.id} className="grid gap-4 p-6 sm:grid-cols-[110px_1fr]">
-            <div className="rounded-2xl bg-[#f1efe9] p-4 text-center">
-              <CalendarDays className="mx-auto text-[#b8502f]" size={20} />
-              <p className="mt-2 text-xs font-black">
-                {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "America/Denver" }).format(new Date(event.startsAt))}
-              </p>
-              <p className="mt-1 text-xs text-[#687068]">
-                {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Denver" }).format(new Date(event.startsAt))}
-              </p>
-            </div>
+    <main className="container-site py-10 sm:py-12">
+      <h1 className="text-4xl font-semibold tracking-[-.03em] sm:text-5xl">Events</h1>
+      <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#5e665e]">What’s happening across the corridor, grouped by day.</p>
+
+      <div className="mt-9 space-y-9">
+        {Object.entries(groups).map(([key, dayEvents]) => (
+          <section key={key}>
+            <h2 className="border-b border-[#cfd2cc] pb-3 text-lg font-semibold">{dayLabel(dayEvents[0].startsAt)}</h2>
             <div>
-              <p className="eyebrow">{event.category}</p>
-              <h2 className="mt-1 text-xl font-black">{event.title}</h2>
-              <p className="mt-2 flex items-center gap-1 text-sm text-[#606860]"><MapPin size={14} /> {event.venue} · {getTown(event.town)?.name}</p>
+              {dayEvents.map((event, index) => (
+                <article key={event.id} className={`grid gap-1 py-4 sm:grid-cols-[160px_1fr_120px] sm:items-center ${index ? "border-t border-[#e4e5df]" : ""}`}>
+                  <span className="text-[13px] font-semibold text-[#667068]">{getTown(event.town)?.name}</span>
+                  <div>
+                    <h3 className="text-[16px] font-semibold">{event.title}</h3>
+                    <p className="mt-1 text-[13px] text-[#737a74]">{event.venue}</p>
+                  </div>
+                  <time dateTime={event.startsAt} className="text-[13px] text-[#5f665f] sm:text-right">{timeLabel(event.startsAt)}</time>
+                </article>
+              ))}
             </div>
-          </article>
+          </section>
         ))}
+        {!events.length ? <p className="border-y border-[#dfe1db] py-6 text-sm text-[#606860]">No upcoming events match this town yet.</p> : null}
       </div>
     </main>
   );

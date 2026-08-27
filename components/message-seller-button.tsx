@@ -32,7 +32,7 @@ export function MessageSellerButton({ listingId }: { listingId: string }) {
 
   return (
     <div>
-      <button onClick={openConversation} disabled={pending} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#163b2d] px-4 py-3 text-sm font-black text-white disabled:opacity-50">
+      <button onClick={openConversation} disabled={pending} className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-[#163b2d] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">
         <MessageCircle size={16} /> {pending ? "Opening..." : "Message seller"}
       </button>
       {error ? <p className="mt-2 text-xs text-[#913c2a]">{error}</p> : null}

@@ -1,5 +1,5 @@
 import { demoBlogPosts, demoContest, demoEvents, demoHousing, demoJobs, demoListings, demoRestaurants } from "@/lib/demo-data";
-import type { BlogPost, Contest, Cuisine, EventItem, Housing, Job, MarketplaceListing, Restaurant } from "@/lib/types";
+import type { BlogPost, Contest, Cuisine, EventItem, Housing, Job, MarketplaceListing, Restaurant, RestaurantHour, RestaurantMenu } from "@/lib/types";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, hasSupabaseServiceRole } from "@/lib/supabase/admin";
@@ -252,20 +252,74 @@ export async function getEvents(input?: { town?: string; limit?: number; todayOn
     .slice(0, limit);
 }
 
-export async function getJobs(): Promise<Job[]> {
-  if (!hasSupabaseEnv()) return demoJobs;
+export async function getJobs(input?: { town?: string; limit?: number }): Promise<Job[]> {
+  const limit = input?.limit ?? 50;
+  if (!hasSupabaseEnv()) {
+    return demoJobs
+      .filter((job) => !input?.town || job.town === input.town)
+      .slice(0, limit);
+  }
   const supabase = await createClient();
-  const { data, error } = await supabase.from("jobs").select("*").eq("status", "active").order("created_at", { ascending: false }).limit(50);
+  let query = supabase.from("jobs").select("*").eq("status", "active").order("created_at", { ascending: false });
+  if (input?.town) query = query.eq("town_slug", input.town);
+  query = query.limit(limit);
+  const { data, error } = await query;
   if (error) throw error;
   return (data ?? []).map((j: any) => ({ id: j.id, title: j.title, company: j.company, town: j.town_slug, pay: j.pay_text, type: j.employment_type }));
 }
 
-export async function getHousing(): Promise<Housing[]> {
-  if (!hasSupabaseEnv()) return demoHousing;
+export async function getHousing(input?: { town?: string; limit?: number }): Promise<Housing[]> {
+  const limit = input?.limit ?? 50;
+  if (!hasSupabaseEnv()) {
+    return demoHousing
+      .filter((listing) => !input?.town || listing.town === input.town)
+      .slice(0, limit);
+  }
   const supabase = await createClient();
-  const { data, error } = await supabase.from("housing_listings").select("*").eq("status", "active").order("created_at", { ascending: false }).limit(50);
+  let query = supabase.from("housing_listings").select("*").eq("status", "active").order("created_at", { ascending: false });
+  if (input?.town) query = query.eq("town_slug", input.town);
+  query = query.limit(limit);
+  const { data, error } = await query;
   if (error) throw error;
   return (data ?? []).map((h: any) => ({ id: h.id, title: h.title, town: h.town_slug, price: Number(h.price), bedrooms: h.bedrooms, type: h.listing_type }));
+}
+
+export async function getRestaurantHours(restaurantId: string): Promise<RestaurantHour[]> {
+  if (!hasSupabaseEnv()) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("restaurant_hours")
+    .select("id,restaurant_id,day_of_week,opens_at,closes_at,note")
+    .eq("restaurant_id", restaurantId)
+    .order("day_of_week", { ascending: true })
+    .order("opens_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row: any) => ({
+    id: Number(row.id),
+    restaurantId: row.restaurant_id,
+    dayOfWeek: row.day_of_week,
+    opensAt: row.opens_at ?? undefined,
+    closesAt: row.closes_at ?? undefined,
+    note: row.note ?? undefined
+  }));
+}
+
+export async function getRestaurantMenus(restaurantId: string): Promise<RestaurantMenu[]> {
+  if (!hasSupabaseEnv()) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("restaurant_menus")
+    .select("id,restaurant_id,name,url,verified_at")
+    .eq("restaurant_id", restaurantId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    restaurantId: row.restaurant_id,
+    name: row.name,
+    url: row.url,
+    verifiedAt: row.verified_at ?? undefined
+  }));
 }
 
 function mapRestaurant(row: any): Restaurant {

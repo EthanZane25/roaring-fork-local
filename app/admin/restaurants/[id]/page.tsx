@@ -7,5 +7,5 @@ export default async function EditRestaurantAdminPage({ params }: { params: Prom
   const { id } = await params;
   const { data: restaurant } = await ctx.supabase.from("restaurants").select("*").eq("id", id).maybeSingle();
   if (!restaurant) notFound();
-  return <main className="container-site max-w-4xl py-12"><p className="eyebrow">Admin</p><h1 className="mt-3 mb-8 text-4xl font-black">Edit {restaurant.name}</h1><AdminRestaurantForm initial={restaurant} /></main>;
+  return <main className="container-site max-w-4xl py-12"><p className="eyebrow">Admin</p><h1 className="mt-3 mb-8 text-4xl font-semibold">Edit {restaurant.name}</h1><AdminRestaurantForm initial={restaurant} /></main>;
 }

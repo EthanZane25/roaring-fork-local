@@ -27,18 +27,18 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   return (
     <main className="container-site py-10">
       <div className="grid gap-7 lg:grid-cols-[1.45fr_.75fr]">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-[28px] bg-[#dedfd9]">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-[#dedfd9]">
           <Image src={listing.imageUrl} alt={listing.title} fill priority className="object-cover" sizes="(max-width: 1024px) 100vw, 65vw" />
         </div>
         <aside className="card h-fit p-7">
           <p className="eyebrow">{titleize(listing.category)}</p>
-          <p className="mt-3 text-3xl font-black">{currency(listing.price)}</p>
-          <h1 className="mt-2 text-2xl font-black tracking-[-.03em]">{listing.title}</h1>
+          <p className="mt-3 text-3xl font-semibold">{currency(listing.price)}</p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-[-.02em]">{listing.title}</h1>
           <p className="mt-4 flex items-center gap-1.5 text-sm text-[#606860]"><MapPin size={15} /> {town?.name}</p>
           <div className="my-6 h-px bg-[#e0e1da]" />
           <p className="leading-7 text-[#505850]">{listing.description}</p>
-          <div className="mt-7 rounded-2xl bg-[#f0efe9] p-4">
-            <p className="font-black">{listing.sellerName}</p>
+          <div className="mt-7 rounded-md bg-[#f0efe9] p-4">
+            <p className="font-semibold">{listing.sellerName}</p>
             <p className="mt-1 flex items-center gap-1 text-xs font-bold text-[#4d6957]">
               {listing.sellerVerified ? <><BadgeCheck size={14} /> Verified seller</> : "Local seller"}
             </p>

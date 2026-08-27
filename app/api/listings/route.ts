@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       demo: true,
-      message: "Demo form accepted. Connect Supabase to persist listings."
+      message: "Preview listing accepted. Live listings are enabled when the site is connected to its production services."
     });
   }
 

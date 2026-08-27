@@ -7,6 +7,8 @@ export type Town = {
   tagline: string;
 };
 
+export type Cuisine = "american" | "italian" | "mexican" | "japanese" | "cafe-bakery" | "other";
+
 export type Restaurant = {
   id: string;
   slug: string;
@@ -16,6 +18,7 @@ export type Restaurant = {
   phone?: string;
   website?: string;
   description: string;
+  cuisine: Cuisine;
   cuisines: string[];
   meals: string[];
   priceLevel: 1 | 2 | 3 | 4;
@@ -27,6 +30,23 @@ export type Restaurant = {
   verifiedAt: string;
   localVotes: number;
   tags: string[];
+};
+
+export type RestaurantHour = {
+  id: number;
+  restaurantId: string;
+  dayOfWeek: number;
+  opensAt?: string;
+  closesAt?: string;
+  note?: string;
+};
+
+export type RestaurantMenu = {
+  id: string;
+  restaurantId: string;
+  name: string;
+  url: string;
+  verifiedAt?: string;
 };
 
 export type MarketplaceListing = {
@@ -43,21 +63,23 @@ export type MarketplaceListing = {
   sellerVerified: boolean;
 };
 
-export type PollOption = {
-  id: string;
-  label: string;
-  town?: string;
+export type ContestRestaurant = {
+  restaurantId: string;
+  slug: string;
+  name: string;
+  town: string;
+  cuisine: Cuisine;
   votes: number;
-  restaurantId?: string;
 };
 
-export type Poll = {
+export type Contest = {
   id: string;
   slug: string;
   title: string;
-  description: string;
-  closesAt?: string;
-  options: PollOption[];
+  startsAt: string;
+  endsAt: string;
+  status: "scheduled" | "open" | "closed";
+  restaurants: ContestRestaurant[];
 };
 
 export type EventItem = {

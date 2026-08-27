@@ -4,28 +4,29 @@ import { TOWNS } from "@/lib/constants";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-20 border-t border-[#d8d9d2] bg-[#ece9e1] py-12">
-      <div className="container-site grid gap-10 md:grid-cols-[1.1fr_2fr]">
-        <div>
-          <Logo />
-          <p className="mt-5 max-w-sm text-sm leading-6 text-[#5f675f]">
-            One useful local source for dining, deals, jobs, housing, events and community voting from Aspen to Rifle.
-          </p>
-          <p className="mt-5 text-xs text-[#777f77]">© 2026 Roaring Fork Local</p>
-        </div>
-        <div className="grid gap-8 sm:grid-cols-3">
+    <footer className="mt-14 border-t border-[#d8dad4] bg-[#f1f0ec]">
+      <div className="container-site py-9">
+        <div className="flex flex-col gap-4 border-b border-[#d4d6d0] pb-7 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-xs font-black uppercase tracking-[.15em]">Explore</h3>
-            <div className="mt-4 grid gap-2 text-sm">
+            <Logo />
+            <p className="mt-3 text-sm text-[#616761]">One useful local source from Aspen to Rifle.</p>
+          </div>
+          <p className="text-xs text-[#7b817c]">© 2026 Roaring Fork Local</p>
+        </div>
+
+        <div className="grid gap-8 pt-7 sm:grid-cols-3">
+          <div>
+            <h3 className="text-sm font-semibold">Explore</h3>
+            <div className="mt-3 grid gap-2 text-sm text-[#555b56]">
               <Link href="/restaurants">Restaurants</Link>
               <Link href="/marketplace">Marketplace</Link>
-              <Link href="/vote">Local voting</Link>
+              <Link href="/vote">Vote</Link>
               <Link href="/events">Events</Link>
             </div>
           </div>
           <div>
-            <h3 className="text-xs font-black uppercase tracking-[.15em]">Community</h3>
-            <div className="mt-4 grid gap-2 text-sm">
+            <h3 className="text-sm font-semibold">Community</h3>
+            <div className="mt-3 grid gap-2 text-sm text-[#555b56]">
               <Link href="/jobs">Jobs</Link>
               <Link href="/housing">Housing</Link>
               <Link href="/marketplace/new">Post a classified</Link>
@@ -33,9 +34,9 @@ export function SiteFooter() {
             </div>
           </div>
           <div>
-            <h3 className="text-xs font-black uppercase tracking-[.15em]">Towns</h3>
-            <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
-              {TOWNS.map((town) => <Link key={town.slug} href={`/${town.slug}`}>{town.name}</Link>)}
+            <h3 className="text-sm font-semibold">Towns</h3>
+            <div className="mt-3 grid gap-2 text-sm text-[#555b56]">
+              {TOWNS.map((town) => <Link key={town.slug} href={`/?town=${town.slug}`} className="w-fit">{town.name}</Link>)}
             </div>
           </div>
         </div>

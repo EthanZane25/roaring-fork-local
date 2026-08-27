@@ -1,98 +1,138 @@
 # Roaring Fork Local
 
-A local discovery platform for the Roaring Fork Valley, covering Aspen through Rifle. The application combines a restaurant directory, hyperlocal classifieds, community voting, jobs, housing, events, and local business discovery in one SEO-first Next.js application.
+A focused Aspen-to-Rifle local directory built around six products: Restaurants, Marketplace, Vote, Events, Jobs, and Housing.
 
 ## Stack
 
 - Next.js 16 App Router
 - React 19 + TypeScript
 - Tailwind CSS 4
-- Supabase PostgreSQL, Auth, Realtime, and Storage
-- PostGIS-ready database schema
-- Cloudflare Turnstile-ready forms
+- Supabase PostgreSQL, Auth, Storage, and RLS
+- Cloudflare Turnstile for production abuse protection
+- Twilio Verify for SMS phone verification
 - Vercel deployment target
+
+## Current information architecture
+
+Public product routes:
+
+- `/` — compact home: headline, tonight, cuisine links, three marketplace listings, account CTA
+- `/restaurants` — restaurant directory grouped by one required primary cuisine
+- `/restaurants/[slug]` — restaurant detail, photo, and current vote contest
+- `/marketplace` — local classifieds
+- `/events` — events grouped by day
+- `/vote` — the one current restaurant contest
+- `/jobs` — reserved until the job inventory is real
+- `/housing` — reserved until the housing inventory is real
+- `/account` — sign-in state, email/phone verification, and the user’s current vote
+
+Legacy town URLs redirect into these top-level products with a single `?town=` site filter. There is one town selector in the global header rather than separate town chip systems on individual pages.
+
+## Home
+
+Home intentionally does not duplicate the six-product navigation. It contains only:
+
+1. Short hero; search remains in the global header.
+2. Three events happening today in the America/Denver timezone.
+3. Primary cuisine links: American, Italian, Mexican, Japanese, Cafe & bakery, Other.
+4. Three newest marketplace listings.
+5. A thin “One account for the whole corridor” CTA.
+
+There is no restaurant card grid or voting widget on Home.
+
+## Restaurant data model
+
+Every restaurant has one required `primary_cuisine`:
+
+- `american`
+- `italian`
+- `mexican`
+- `japanese`
+- `cafe-bakery`
+- `other`
+
+The existing `cuisines[]`, `search_tags[]`, and `meals[]` fields remain available for search and descriptive tags, but they do not control directory grouping.
+
+For an existing Supabase project, run:
+
+```text
+database/migrations/20260826_directory_contests.sql
+```
+
+For a new Supabase project, run `database/schema.sql` and then `database/seed.sql`; the consolidated schema already contains the migration.
+
+## Verified contest voting
+
+Production voting never relies on React state, cookies, localStorage, IP address, or device fingerprint as the one-vote lock.
+
+The identity and vote model is:
+
+```text
+users: id, email unique, phone_e164 unique, email_verified_at, phone_verified_at, banned_at
+contests: id, slug, title, starts_at, ends_at, status
+contest_restaurants: contest_id, restaurant_id
+restaurant_votes: contest_id, user_id, restaurant_id, created_at, updated_at
+  UNIQUE (contest_id, user_id)
+```
+
+A production vote requires:
+
+1. Signed-in Supabase account.
+2. Confirmed email.
+3. Twilio Verify SMS challenge.
+4. A unique E.164 phone number assigned to only one app user.
+5. Open contest and eligible restaurant.
+6. Cloudflare Turnstile when production vote security is enabled.
+
+`POST /api/votes` calls the service-role-only PostgreSQL function `cast_restaurant_vote(...)`. The function uses `INSERT ... ON CONFLICT (contest_id, user_id) DO UPDATE`, so changing a vote updates the same row rather than adding a second vote.
+
+Supporting endpoints:
+
+- `POST /api/votes` — cast or change one verified vote
+- `GET /api/votes/me` — current user’s eligibility and existing choice
+- `GET /api/contests/[slug]/results` — public results from counted, currently verified, non-banned users only
+
+### Abuse controls
+
+- Vote changes: 5 attempts per hour per user/contest.
+- Account creation: loose per-IP rate limit plus Turnstile, designed not to treat shared lodge/library Wi-Fi as one person.
+- SMS: rate limits per phone and per IP.
+- Device/browser/IP hashes are fraud signals only, never the identity lock.
+- Same-device, same-browser-signature, shared-network, same-restaurant burst, and very-new-account patterns contribute to a risk score.
+- High-risk votes are stored as `held` and excluded from public totals until staff review.
+- Staff can count/reject held votes or invalidate a user from `/admin/votes`; invalidated users are excluded from results.
 
 ## Local development
 
 1. Install Node.js 22 LTS or newer.
 2. Install dependencies:
+
    ```bash
    npm install
    ```
+
 3. Copy environment variables:
+
    ```bash
    cp .env.example .env.local
    ```
+
 4. Start the app:
+
    ```bash
    npm run dev
    ```
+
 5. Open `http://localhost:3000`.
 
-The application runs with bundled demo data when Supabase variables are not configured.
+Without Supabase variables the public directory renders bundled demo content. Production account creation, phone verification, and voting require the backend services below.
 
-## Supabase setup
-
-1. Create a Supabase project.
-2. Open the SQL editor.
-3. Run `database/schema.sql`.
-4. Run `database/seed.sql`.
-5. Copy the project URL and publishable key into `.env.local`.
-6. Add your production URL to Supabase Auth redirect URLs.
-
-## Production
-
-Deploy to Vercel and add all environment variables to the project. For voting, account signup, phone verification, marketplace posting, and suggestion abuse protection, configure Cloudflare Turnstile. In Supabase, also enable Turnstile under Authentication → Bot and Abuse Protection so signup CAPTCHA tokens are validated by Supabase Auth.
-
-## Primary routes
-
-- `/` — homepage
-- `/aspen` — town hub
-- `/restaurants` — valley restaurant directory
-- `/aspen/restaurants/breakfast` — programmatic SEO category page
-- `/marketplace` — local classifieds
-- `/marketplace/new` — create a listing
-- `/vote` — community voting
-- `/events` — local events
-- `/jobs` — local jobs
-- `/housing` — local housing
-- `/blog` — local stories and community suggestions
-- `/search` — cross-site search
-- `/account` — user account
-- `/admin` — administration
-- `/admin/blog` — blog publishing and suggestion review
-- `/admin/votes` — held-vote and fraud-signal review
-
-## Design principle
-
-Indexable pages are generated only for real towns/categories with useful data. Arbitrary search-result URLs are marked `noindex` to avoid thin or duplicate SEO pages.
-
-## Community blog and suggestions
-
-The `/blog` section contains published local posts and a Turnstile-protected suggestion form. Public suggestions are **not** automatically published; they are stored for editor review in `blog_suggestions`. Admins can review suggestions and create posts at `/admin/blog`.
-
-## Hardened voting
-
-Live voting is intentionally routed through `/api/votes`; authenticated clients do not have direct INSERT access to the `votes` table. The production flow uses multiple independent controls:
-
-1. Confirmed user account.
-2. Twilio Verify SMS challenge from the Account page.
-3. One verified phone hash can belong to only one profile.
-4. Cloudflare Turnstile on phone verification, account signup, vote submission and blog suggestions.
-5. One vote per account per poll enforced by a PostgreSQL unique constraint.
-6. One vote per verified phone per poll enforced by a second PostgreSQL unique index.
-7. A long-lived first-party device cookie plus coarse browser signature, IP hash and network hash are used as fraud signals.
-8. Rapid attempts are rate-limited.
-9. High-risk votes are stored as `held` and do not increment the public total until an admin approves them at `/admin/votes`.
-10. Raw IP addresses and raw verified phone numbers are not stored in the application tables used for vote fraud analysis; keyed hashes are stored instead.
-
-No public web voting system can make duplicate human participation mathematically impossible without requiring government identity or equivalent identity proofing. This design deliberately raises the cost of ballot stuffing while avoiding an automatic one-IP-one-vote rule that would incorrectly block families, offices, hotels or shared Wi-Fi.
-
-### Production security environment variables
-
-Set all of these before enabling live voting:
+## Production environment
 
 ```env
+NEXT_PUBLIC_SITE_URL=
+NEXT_PUBLIC_SITE_NAME=Roaring Fork Local
+
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
@@ -105,40 +145,27 @@ VOTE_FRAUD_SECRET=
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_VERIFY_SERVICE_SID=
+
+ADMIN_EMAILS=
 ```
 
-Generate `VOTE_FRAUD_SECRET` once and keep it stable. For example on macOS:
+Generate `VOTE_FRAUD_SECRET` once and keep it stable:
 
 ```bash
 openssl rand -hex 32
 ```
 
-Do not expose `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SECRET`, `TWILIO_AUTH_TOKEN`, or `VOTE_FRAUD_SECRET` with a `NEXT_PUBLIC_` prefix.
+Never expose the service-role key, Turnstile secret, Twilio auth token, or vote-fraud secret with a `NEXT_PUBLIC_` prefix.
 
-For an existing database created with an earlier version of this project, run:
+## Supabase setup
 
-```text
-database/migrations/002-blog-and-secure-voting.sql
-```
+For a fresh project:
 
-For a new Supabase project, run `database/schema.sql` and then `database/seed.sql`.
+1. Run `database/schema.sql` in the Supabase SQL editor.
+2. Run `database/seed.sql`.
+3. Configure the Supabase URL and keys.
+4. Add your production origin to Auth redirect URLs.
+5. Configure Turnstile and Twilio Verify before enabling production contests.
+6. Set `ADMIN_EMAILS` for staff who can review held votes.
 
-## Restaurant directory and guided finder
-
-The restaurant directory uses a compact client-side filtering layer over server-loaded restaurant records. It supports town, cuisine, meal, price, open-now, preference tags, sorting, searchable restaurant names and incremental rendering. The same component powers the valley-wide and town-specific directory pages.
-
-The `Help me choose` flow is implemented in `components/food-finder.tsx`. It asks one question at a time, scores restaurants using the same structured fields used by search and SEO, and falls back to closest matches when the database does not contain three exact results. This means it improves automatically as the restaurant database is populated.
-
-## Restaurant directory / advertising rule (v6)
-
-The restaurant directory is intentionally text-first. Free restaurant listings do not receive photo placement. Restaurant photos are rendered only when `restaurants.is_advertiser = true`, and those placements are labeled `Sponsored`.
-
-For an existing Supabase database, run:
-
-```sql
--- database/migrations/003-restaurant-advertising.sql
-alter table public.restaurants
-  add column if not exists is_advertiser boolean not null default false;
-```
-
-Then use `/admin/restaurants` to mark a paid restaurant advertiser. An image URL by itself does not make the image public; the advertiser flag must also be enabled.
+For an existing v6 database, run `database/migrations/20260826_directory_contests.sql`, then rerun the appended contest/cuisine seed section in `database/seed.sql` or seed the current contest from the admin/database console.

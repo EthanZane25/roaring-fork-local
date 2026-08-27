@@ -1,23 +1,20 @@
 import type { Metadata } from "next";
 import { VotePanel } from "@/components/vote-panel";
-import { getPolls } from "@/lib/data";
+import { getCurrentContest } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Roaring Fork Local Voting",
-  description: "Community voting for restaurants and local favorites across the Roaring Fork Valley."
+  description: "One verified local restaurant contest at a time across the Roaring Fork corridor."
 };
 
 export default async function VotePage() {
-  const polls = await getPolls();
+  const contest = await getCurrentContest();
   return (
-    <main className="container-site py-12">
-      <p className="eyebrow">Community rankings</p>
-      <h1 className="mt-3 text-4xl font-black tracking-[-.045em] sm:text-5xl">Vote once. Make it count.</h1>
-      <p className="mt-4 max-w-2xl leading-7 text-[#5e665e]">
-        Production voting is tied to an authenticated account and protected by a database uniqueness constraint so one account cannot cast two votes in the same poll.
-      </p>
-      <div className="mt-10 grid gap-6 lg:grid-cols-2">
-        {polls.map((poll) => <VotePanel key={poll.id} poll={poll} />)}
+    <main className="container-site py-10 sm:py-12">
+      <h1 className="text-4xl font-semibold tracking-[-.03em] sm:text-5xl">Local vote</h1>
+      <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#5e665e]">One current contest, one verified person, one vote row. You can change your choice until the contest closes.</p>
+      <div className="mt-8 max-w-3xl">
+        {contest ? <VotePanel contest={contest} /> : <p className="border-y border-[#d9dbd5] py-7 text-sm text-[#606760]">There is no open contest right now.</p>}
       </div>
     </main>
   );

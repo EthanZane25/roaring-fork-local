@@ -17,11 +17,21 @@ export const TOWNS: Town[] = [
   { slug: "rifle", name: "Rifle", county: "Garfield", latitude: 39.5347, longitude: -107.7831, tagline: "Rifle restaurants, marketplace, jobs and local events." }
 ];
 
-export const RESTAURANT_CATEGORIES = [
-  "breakfast", "brunch", "lunch", "dinner", "open-now", "cheap-eats",
-  "burgers", "coffee", "happy-hour", "italian", "mexican", "pizza",
-  "sushi", "steak", "outdoor-dining", "family-friendly"
-];
+
+export const CUISINES = [
+  { value: "", label: "All" },
+  { value: "american", label: "American" },
+  { value: "italian", label: "Italian" },
+  { value: "mexican", label: "Mexican" },
+  { value: "japanese", label: "Japanese" },
+  { value: "cafe-bakery", label: "Cafe & bakery" },
+  { value: "other", label: "Other" }
+] as const;
+
+export function cuisineLabel(value: string) {
+  return CUISINES.find((item) => item.value === value)?.label || titleize(value);
+}
+
 
 export const MARKETPLACE_CATEGORIES = [
   "vehicles", "furniture", "bikes", "ski-snowboard", "outdoor-gear",

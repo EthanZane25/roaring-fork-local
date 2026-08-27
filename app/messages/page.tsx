@@ -20,7 +20,7 @@ export default async function MessagesPage() {
   return (
     <main className="container-site max-w-3xl py-12">
       <p className="eyebrow">Marketplace</p>
-      <h1 className="mt-3 text-4xl font-black">Messages</h1>
+      <h1 className="mt-3 text-4xl font-semibold">Messages</h1>
       <div className="card mt-8 divide-y divide-[#e1e2dc]">
         {(conversations ?? []).map((conversation: any) => (
           <Link key={conversation.id} href={`/messages/${conversation.id}`} className="block p-5 hover:bg-[#f7f7f2]">

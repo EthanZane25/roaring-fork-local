@@ -4,22 +4,19 @@ import { getRestaurants } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Roaring Fork Valley Restaurants",
-  description: "Search restaurants from Aspen to Rifle by town, cuisine, meal, price and local recommendations.",
+  description: "Browse restaurants from Aspen to Rifle by town and primary cuisine.",
   alternates: { canonical: "/restaurants" }
 };
 
-export default async function RestaurantsPage() {
-  const restaurants = await getRestaurants();
+export default async function RestaurantsPage({ searchParams }: { searchParams: Promise<{ town?: string; cuisine?: string }> }) {
+  const filters = await searchParams;
+  const restaurants = await getRestaurants({ town: filters.town });
 
   return (
     <main className="container-site py-10 sm:py-12">
-      <p className="eyebrow">Aspen to Rifle</p>
-      <div className="mt-2 max-w-3xl">
-        <h1 className="text-3xl font-semibold tracking-[-0.02em] sm:text-4xl">Restaurants</h1>
-        <p className="mt-3 leading-7 text-[#5e665e]">Search the valley without scrolling through hundreds of restaurant cards. Filter the directory or let the restaurant finder narrow it down for you.</p>
-      </div>
-
-      <RestaurantDirectory restaurants={restaurants} />
+      <h1 className="text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">Restaurants</h1>
+      <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#5e665e]">Browse the corridor by primary cuisine. Use the town control in the header to narrow the whole site.</p>
+      <RestaurantDirectory restaurants={restaurants} initialTown={filters.town} initialCuisine={filters.cuisine} />
     </main>
   );
 }

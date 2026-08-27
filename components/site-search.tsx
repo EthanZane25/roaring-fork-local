@@ -1,8 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function SiteSearch() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
 
   function submit(event: FormEvent) {
@@ -10,9 +12,9 @@ export function SiteSearch() {
     const source = new URL(window.location.href);
     const next = new URL("/search", source.origin);
     if (query.trim()) next.searchParams.set("q", query.trim());
-    const town = source.searchParams.get("town");
+    const town = source.searchParams.get("town") || window.localStorage.getItem("rfl-town");
     if (town) next.searchParams.set("town", town);
-    window.location.assign(`${next.pathname}${next.search}`);
+    router.push(`${next.pathname}${next.search}`);
   }
 
   return (

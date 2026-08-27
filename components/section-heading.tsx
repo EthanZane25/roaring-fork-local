@@ -3,14 +3,14 @@ import { ArrowRight } from "lucide-react";
 
 export function SectionHeading({ eyebrow, title, href, linkLabel = "See all" }: { eyebrow: string; title: string; href?: string; linkLabel?: string }) {
   return (
-    <div className="mb-6 flex items-end justify-between gap-4">
+    <div className="mb-5 flex items-end justify-between gap-4 border-b border-[#dfe0da] pb-3">
       <div>
-        <p className="eyebrow">{eyebrow}</p>
-        <h2 className="mt-2 text-2xl font-black tracking-[-0.035em] sm:text-3xl">{title}</h2>
+        <p className="text-xs font-semibold text-[#a94f32]">{eyebrow}</p>
+        <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.025em] sm:text-2xl">{title}</h2>
       </div>
       {href ? (
-        <Link href={href} className="hidden items-center gap-1 text-sm font-bold text-[#163b2d] sm:inline-flex">
-          {linkLabel} <ArrowRight size={16} />
+        <Link href={href} className="inline-flex items-center gap-1 text-sm font-medium text-[#173f30] hover:underline">
+          {linkLabel} <ArrowRight size={15} />
         </Link>
       ) : null}
     </div>

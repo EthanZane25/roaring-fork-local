@@ -16,6 +16,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     phone: body.phone || null,
     website: body.website || null,
     description: body.description || "",
+    primary_cuisine: body.cuisine || "other",
     cuisines: body.cuisines || [],
     meals: body.meals || [],
     search_tags: body.tags || [],

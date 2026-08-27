@@ -8,6 +8,5 @@ out
 .DS_Store
 *.log
 coverage
-.env*.local
-node_modules/
-.next/
+
+*.tsbuildinfo

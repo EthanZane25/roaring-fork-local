@@ -28,8 +28,8 @@ export function MessageComposer({ conversationId }: { conversationId: string }) 
 
   return (
     <form onSubmit={submit} className="mt-5 flex gap-2">
-      <input value={body} onChange={(event) => setBody(event.target.value)} maxLength={2000} placeholder="Write a message..." className="min-w-0 flex-1 rounded-xl border border-[#d6d8d1] bg-white px-4 py-3" />
-      <button disabled={pending || !body.trim()} className="grid h-12 w-12 place-items-center rounded-xl bg-[#163b2d] text-white disabled:opacity-45" aria-label="Send message"><Send size={17} /></button>
+      <input value={body} onChange={(event) => setBody(event.target.value)} maxLength={2000} placeholder="Write a message..." className="min-w-0 flex-1 rounded-md border border-[#d6d8d1] bg-white px-4 py-3" />
+      <button disabled={pending || !body.trim()} className="grid h-12 w-12 place-items-center rounded-md bg-[#163b2d] text-white disabled:opacity-45" aria-label="Send message"><Send size={17} /></button>
     </form>
   );
 }
