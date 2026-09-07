@@ -91,7 +91,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ slu
           <h1 className="mt-2 text-4xl font-semibold tracking-[-.03em] sm:text-5xl">{restaurant.name}</h1>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-[#5e665e]">
             <span className="flex items-center gap-1"><MapPin size={15} /> {restaurant.address}</span>
-            <span className="flex items-center gap-1 text-[#2b6144]"><BadgeCheck size={15} /> Verified {formatDate(restaurant.verifiedAt)}</span>
+            {restaurant.verifiedAt ? <span className="flex items-center gap-1 text-[#2b6144]"><BadgeCheck size={15} /> Verified {formatDate(restaurant.verifiedAt)}</span> : null}
             {restaurant.openNow !== undefined ? (
               <span className={`flex items-center gap-1 font-medium ${restaurant.openNow ? "text-[#2b6144]" : "text-[#7b5549]"}`}>
                 <Clock3 size={15} /> {restaurant.openNow ? "Open now" : "Closed now"}

@@ -23,8 +23,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
+        <a
+          href="#main-content"
+          className="fixed left-3 top-3 z-[100] -translate-y-24 rounded-md bg-[#173f30] px-4 py-2 text-sm font-semibold text-white transition focus:translate-y-0"
+        >
+          Skip to content
+        </a>
         <SiteHeader />
-        {children}
+        <div id="main-content">{children}</div>
         <SiteFooter />
       </body>
     </html>

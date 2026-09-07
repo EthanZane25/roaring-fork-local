@@ -341,7 +341,7 @@ function mapRestaurant(row: any): Restaurant {
     imageUrl: row.image_url ?? "",
     isAdvertiser: Boolean(row.is_advertiser),
     openNow: row.open_now ?? undefined,
-    verifiedAt: row.verified_at ?? row.updated_at,
+    verifiedAt: row.verified_at ?? undefined,
     localVotes: row.local_votes ?? 0,
     tags: row.search_tags ?? []
   };
