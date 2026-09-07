@@ -1,110 +1,114 @@
 @import "tailwindcss";
 
-:root {
-  --background: #fbfaf6;
-  --foreground: #1b211d;
-  --muted: #626a64;
-  --line: #dedfd9;
-  --line-strong: #c9ccc5;
-  --brand: #173f30;
-  --brand-hover: #0f3225;
-  --accent: #b28a24;
-  --surface: #ffffff;
-  --surface-muted: #f3f1eb;
-}
+@layer base {
+  :root {
+    --background: #fbfaf6;
+    --foreground: #1b211d;
+    --muted: #626a64;
+    --line: #dedfd9;
+    --line-strong: #c9ccc5;
+    --brand: #173f30;
+    --brand-hover: #0f3225;
+    --accent: #b28a24;
+    --surface: #ffffff;
+    --surface-muted: #f3f1eb;
+  }
 
-* {
-  box-sizing: border-box;
-}
+  * {
+    box-sizing: border-box;
+  }
 
-html {
-  scroll-behavior: smooth;
-}
+  html {
+    scroll-behavior: smooth;
+  }
 
-body {
-  margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  text-rendering: optimizeLegibility;
-}
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-rendering: optimizeLegibility;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
 
-button,
-a {
-  -webkit-tap-highlight-color: transparent;
-}
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
 
-img {
-  max-width: 100%;
-}
+  img {
+    max-width: 100%;
+  }
 
-::selection {
-  background: #dce9e2;
-}
+  ::selection {
+    background: #dce9e2;
+  }
 
-.container-site {
-  width: min(1420px, calc(100% - 72px));
-  margin-inline: auto;
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-}
-
-.eyebrow {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: #8a6a22;
-}
-
-.text-balance {
-  text-wrap: balance;
-}
-
-.prose-local p {
-  color: #4b514c;
-  line-height: 1.75;
-}
-
-.focus-ring:focus-visible,
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid #276b4e;
-  outline-offset: 2px;
-}
-
-@media (max-width: 900px) {
-  .container-site {
-    width: min(100% - 32px, 1420px);
+  .focus-ring:focus-visible,
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid #276b4e;
+    outline-offset: 2px;
   }
 }
 
-@media (max-width: 640px) {
+@layer components {
   .container-site {
-    width: min(100% - 24px, 1420px);
+    width: min(1420px, calc(100% - 72px));
+    margin-inline: auto;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: #8a6a22;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .prose-local p {
+    color: #4b514c;
+    line-height: 1.75;
+  }
+
+  @media (max-width: 900px) {
+    .container-site {
+      width: min(100% - 32px, 1420px);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .container-site {
+      width: min(100% - 24px, 1420px);
+    }
   }
 }

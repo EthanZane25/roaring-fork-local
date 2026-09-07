@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { BadgeCheck, MapPin } from "lucide-react";
+import { BadgeCheck, ImageIcon, MapPin } from "lucide-react";
 import { MessageSellerButton } from "@/components/message-seller-button";
 import { getListing } from "@/lib/data";
 import { currency } from "@/lib/utils";
@@ -27,8 +27,17 @@ export default async function MarketplaceListingPage({ params }: { params: Promi
   return (
     <main className="container-site py-10">
       <div className="grid gap-7 lg:grid-cols-[1.45fr_.75fr]">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-[#dedfd9]">
-          <Image src={listing.imageUrl} alt={listing.title} fill priority className="object-cover" sizes="(max-width: 1024px) 100vw, 65vw" />
+        <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-[#edf0ec]">
+          {listing.imageUrl ? (
+            <Image src={listing.imageUrl} alt={listing.title} fill priority className="object-cover" sizes="(max-width: 1024px) 100vw, 65vw" />
+          ) : (
+            <div className="grid h-full place-items-center text-[#8c9690]">
+              <div className="text-center">
+                <ImageIcon size={40} className="mx-auto" />
+                <p className="mt-2 text-sm font-medium">No photo provided</p>
+              </div>
+            </div>
+          )}
         </div>
         <aside className="card h-fit p-7">
           <p className="eyebrow">{titleize(listing.category)}</p>
