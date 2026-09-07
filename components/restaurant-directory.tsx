@@ -34,10 +34,13 @@ export function RestaurantDirectory({ restaurants, initialTown = "", initialCuis
   }, [restaurants, query, validCuisine]);
 
   const groups = useMemo(() => {
-    return CUISINES.filter((item) => item.value).map((item) => ({
-      ...item,
-      restaurants: searched.filter((restaurant) => restaurant.cuisine === item.value)
-    })).filter((group) => group.restaurants.length > 0);
+    return CUISINES
+      .filter((item) => item.value)
+      .map((item) => ({
+        ...item,
+        restaurants: searched.filter((restaurant) => restaurant.cuisine === item.value)
+      }))
+      .filter((group) => group.restaurants.length > 0);
   }, [searched]);
 
   function cuisineHref(cuisine: string) {
@@ -51,58 +54,75 @@ export function RestaurantDirectory({ restaurants, initialTown = "", initialCuis
   return (
     <>
       <div className="mt-7 max-w-xl">
-        <label className="relative block">
+        <label className="flex h-11 items-center gap-2.5 rounded-xl border border-[#d4dad5] bg-white px-3.5 focus-within:border-[#2f6b52] focus-within:shadow-[0_0_0_3px_rgba(47,107,82,0.08)]">
           <span className="sr-only">Search within restaurants</span>
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#777d77]" size={17} />
+          <Search className="shrink-0 text-[#777f79]" size={17} />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search within restaurants"
-            className="h-11 w-full border border-[#cfd2cc] bg-white pl-9 pr-9 text-sm outline-none focus:border-[#37644f]"
+            className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm outline-none"
           />
-          {query ? <button type="button" onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#777d77]" aria-label="Clear restaurant search"><X size={16} /></button> : null}
+          {query ? (
+            <button type="button" onClick={() => setQuery("")} className="text-[#777f79]" aria-label="Clear restaurant search">
+              <X size={16} />
+            </button>
+          ) : null}
         </label>
       </div>
 
-      <div className="sticky top-[58px] z-20 mt-6 border-y border-[#d8dad4] bg-[#fbfaf7]/96 py-3 backdrop-blur-sm">
-        <div className="flex gap-2 overflow-x-auto pb-0.5">
-          {CUISINES.map((item) => {
-            const active = item.value === validCuisine;
-            return (
-              <Link
-                key={item.value || "all"}
-                href={cuisineHref(item.value)}
-                className={`shrink-0 border px-3.5 py-2 text-sm font-medium ${active ? "border-[#173f30] bg-[#173f30] text-white" : "border-[#d4d7d0] bg-white text-[#4f5651] hover:border-[#9ca7a0]"}`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
+      <div className="mt-6 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {CUISINES.map((item) => {
+          const active = item.value === validCuisine;
+          return (
+            <Link
+              key={item.value || "all"}
+              href={cuisineHref(item.value)}
+              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${
+                active
+                  ? "border-[#123c2f] bg-[#123c2f] text-white"
+                  : "border-[#d4dad5] bg-white text-[#4f5952] hover:border-[#b8c5bc]"
+              }`}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </div>
 
       <div className="mt-8">
         {validCuisine ? (
           <section>
-            <div className="flex items-baseline justify-between gap-4 border-b border-[#cfd2cc] pb-3">
+            <div className="flex items-baseline justify-between gap-4 border-b border-[#cfd5d0] pb-3">
               <h2 className="text-xl font-semibold">{CUISINES.find((item) => item.value === validCuisine)?.label}</h2>
-              <span className="text-[13px] text-[#747b76]">{searched.length}</span>
+              <span className="text-[13px] text-[#747c76]">{searched.length}</span>
             </div>
-            <div className="bg-white">{searched.map((restaurant) => <RestaurantRow key={restaurant.id} restaurant={restaurant} />)}</div>
+            <div className="mt-2 overflow-hidden rounded-2xl border border-[#dfe3de] bg-white">
+              {searched.map((restaurant) => <RestaurantRow key={restaurant.id} restaurant={restaurant} />)}
+            </div>
           </section>
         ) : (
           <div className="space-y-10">
             {groups.map((group) => (
               <section key={group.value}>
-                <div className="flex items-baseline justify-between gap-4 border-b border-[#cfd2cc] pb-3">
-                  <h2 className="text-xl font-semibold">{group.label} <span className="font-normal text-[#858b86]">· {group.restaurants.length}</span></h2>
+                <div className="flex items-baseline justify-between gap-4 border-b border-[#cfd5d0] pb-3">
+                  <h2 className="text-xl font-semibold">
+                    {group.label} <span className="font-normal text-[#858c86]">· {group.restaurants.length}</span>
+                  </h2>
                 </div>
-                <div className="bg-white">{group.restaurants.map((restaurant) => <RestaurantRow key={restaurant.id} restaurant={restaurant} />)}</div>
+                <div className="mt-2 overflow-hidden rounded-2xl border border-[#dfe3de] bg-white">
+                  {group.restaurants.map((restaurant) => <RestaurantRow key={restaurant.id} restaurant={restaurant} />)}
+                </div>
               </section>
             ))}
           </div>
         )}
-        {!searched.length ? <p className="border-y border-[#dfe1db] py-7 text-sm text-[#606760]">No restaurants match that search.</p> : null}
+
+        {!searched.length ? (
+          <p className="rounded-2xl border border-[#dfe3de] bg-white px-6 py-8 text-sm text-[#606a63]">
+            No restaurants match that search.
+          </p>
+        ) : null}
       </div>
     </>
   );

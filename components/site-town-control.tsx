@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useSyncExternalStore } from "react";
-import { MapPin } from "lucide-react";
+import { ChevronDown, MapPin } from "lucide-react";
 import { TOWNS } from "@/lib/constants";
 
 const TOWN_STORAGE_KEY = "rfl-town";
@@ -24,6 +24,7 @@ function subscribeTown(callback: () => void) {
   window.addEventListener("storage", callback);
   window.addEventListener("popstate", callback);
   window.addEventListener(TOWN_CHANGE_EVENT, callback);
+
   return () => {
     window.removeEventListener("storage", callback);
     window.removeEventListener("popstate", callback);
@@ -63,27 +64,29 @@ export function SiteTownControl() {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       const closest = [...TOWNS].sort(
-        (a, b) => distanceSquared(coords.latitude, coords.longitude, a.latitude, a.longitude) - distanceSquared(coords.latitude, coords.longitude, b.latitude, b.longitude)
+        (a, b) =>
+          distanceSquared(coords.latitude, coords.longitude, a.latitude, a.longitude) -
+          distanceSquared(coords.latitude, coords.longitude, b.latitude, b.longitude)
       )[0];
       navigate(closest.slug);
     });
   }
 
   return (
-    <label className="relative flex h-9 items-center border border-[#d8dad4] bg-white">
-      <MapPin size={14} className="pointer-events-none absolute left-2.5 text-[#617068]" />
+    <label className="relative flex h-11 min-w-[150px] items-center rounded-xl border border-[#d8ddd8] bg-[#f7f8f6] pl-3 pr-2 transition focus-within:border-[#2f6b52] focus-within:bg-white">
+      <MapPin size={16} strokeWidth={1.8} className="shrink-0 text-[#627168]" aria-hidden="true" />
       <span className="sr-only">Town</span>
       <select
         value={value}
         onChange={(event) => change(event.target.value)}
-        className="h-full w-[108px] appearance-none bg-transparent pl-8 pr-6 text-xs font-medium outline-none sm:w-[154px]"
+        className="h-full min-w-0 flex-1 appearance-none bg-transparent pl-2 pr-7 text-sm font-semibold text-[#27302a] outline-none"
         aria-label="Town"
       >
         <option value="">All towns</option>
         <option value="near-me">Near me</option>
         {TOWNS.map((town) => <option key={town.slug} value={town.slug}>{town.name}</option>)}
       </select>
-      <span className="pointer-events-none absolute right-2 text-[10px] text-[#747b76]">▾</span>
+      <ChevronDown size={14} className="pointer-events-none absolute right-3 text-[#737c75]" aria-hidden="true" />
     </label>
   );
 }
