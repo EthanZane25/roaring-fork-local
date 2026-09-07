@@ -8,10 +8,10 @@ export const PRIMARY_NAV = [
   ["Home", "/"],
   ["Eat", "/restaurants"],
   ["Marketplace", "/marketplace"],
-  ["Vote", "/vote"],
   ["Events", "/events"],
   ["Jobs", "/jobs"],
-  ["Housing", "/housing"]
+  ["Housing", "/housing"],
+  ["Vote", "/vote"]
 ] as const;
 
 const TOWN_STORAGE_KEY = "rfl-town";
@@ -40,26 +40,27 @@ export function PrimaryNav({ town, className = "" }: { town?: string; className?
   const activeTown = town || rememberedTown;
 
   return (
-    <nav className={`overflow-x-auto ${className}`} aria-label="Primary navigation">
-      <div className="flex min-w-max items-center gap-1 sm:gap-2">
+    <nav
+      className={`overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}
+      aria-label="Primary navigation"
+    >
+      <div className="flex min-w-max items-center gap-2 lg:gap-3">
         {PRIMARY_NAV.map(([label, href]) => {
           const destination = activeTown
             ? `${href}${href.includes("?") ? "&" : "?"}town=${encodeURIComponent(activeTown)}`
             : href;
-
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
 
           return (
             <Link
               key={href}
               href={destination}
-              className={`whitespace-nowrap border-b-2 px-3 py-4 text-[14px] font-medium transition-colors ${
-                active
-                  ? "border-[#173f30] text-[#173f30]"
-                  : "border-transparent text-[#333833] hover:text-[#173f30]"
+              className={`relative whitespace-nowrap px-2.5 py-5 text-[14px] font-medium transition-colors ${
+                active ? "text-[#202a24]" : "text-[#303730] hover:text-[#173f30]"
               }`}
             >
               {label}
+              {active ? <span className="absolute inset-x-2.5 bottom-3 h-[2px] bg-[#b38a28]" /> : null}
             </Link>
           );
         })}

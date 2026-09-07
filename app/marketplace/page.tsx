@@ -1,40 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { CheckCircle2, Plus, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { ListingCard } from "@/components/listing-card";
 import { getListings } from "@/lib/data";
-import { MARKETPLACE_CATEGORIES, titleize } from "@/lib/constants";
+import { MARKETPLACE_CATEGORIES, TOWNS, titleize } from "@/lib/constants";
 
-export const metadata: Metadata = {
-  title: "Roaring Fork Valley Marketplace",
-  description: "Local classifieds from Aspen to Rifle. Buy and sell furniture, vehicles, bikes, ski gear and more."
-};
+export const metadata: Metadata = { title: "Roaring Fork Marketplace", description: "A cleaner local marketplace from Aspen to Rifle with fresh listings, useful filters and local seller verification." };
+type Params={town?:string;category?:string;q?:string;sort?:string;min?:string;max?:string};
+function urlFor(base:Params,patch:Partial<Params>){const next={...base,...patch};const p=new URLSearchParams();for(const [k,v] of Object.entries(next))if(v)p.set(k,v);return p.toString()?`/marketplace?${p.toString()}`:"/marketplace";}
 
-export default async function MarketplacePage({ searchParams }: { searchParams: Promise<{ town?: string; category?: string }> }) {
-  const filters = await searchParams;
-  const listings = await getListings({ town: filters.town, category: filters.category });
-  return (
-    <main className="container-site py-12">
-      <div className="flex flex-wrap items-end justify-between gap-5">
-        <div>
-          <p className="eyebrow">Local classifieds</p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-[-.02em] sm:text-5xl">Marketplace</h1>
-          <p className="mt-4 max-w-2xl leading-7 text-[#5e665e]">Buy and sell locally from Aspen to Rifle without sorting through Front Range listings.</p>
-        </div>
-        <Link href="/marketplace/new" className="inline-flex items-center gap-2 rounded-md bg-[#163b2d] px-5 py-3 text-sm font-semibold text-white"><Plus size={17} /> Post a listing</Link>
-      </div>
-
-      <div className="mt-8 flex flex-wrap gap-2">
-        <Link href="/marketplace" className="border border-[#d7d9d2] bg-white px-4 py-2 text-sm font-medium">All</Link>
-        {MARKETPLACE_CATEGORIES.map((category) => (
-          <Link key={category} href={`/marketplace?category=${category}${filters.town ? `&town=${filters.town}` : ""}`} className="border border-[#d7d9d2] bg-white px-4 py-2 text-sm font-medium">{titleize(category)}</Link>
-        ))}
-      </div>
-
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {listings.map((listing) => <ListingCard key={listing.id} listing={listing} />)}
-      </div>
-      {!listings.length ? <div className="mt-8 border-y border-[#d9dbd5] py-8 text-sm text-[#606860]">No active listings match those filters.</div> : null}
-    </main>
-  );
+export default async function MarketplacePage({searchParams}:{searchParams:Promise<Params>}){
+  const filters=await searchParams; let listings=await getListings({town:filters.town,category:filters.category,limit:200});
+  const q=filters.q?.trim().toLowerCase(); if(q) listings=listings.filter((item)=>`${item.title} ${item.description} ${item.sellerName}`.toLowerCase().includes(q));
+  const min=filters.min?Number(filters.min):null; const max=filters.max?Number(filters.max):null; if(Number.isFinite(min)) listings=listings.filter((item)=>item.price>=Number(min)); if(Number.isFinite(max)) listings=listings.filter((item)=>item.price<=Number(max));
+  if(filters.sort==="price-low") listings.sort((a,b)=>a.price-b.price); else if(filters.sort==="price-high") listings.sort((a,b)=>b.price-a.price); else listings.sort((a,b)=>new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime());
+  return <main className="bg-[#fbfaf7]">
+    <section className="border-b border-[#e1e4df] bg-white"><div className="container-site py-9 sm:py-11"><div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[0.17em] text-[#8b6b22]">Local classifieds</p><h1 className="mt-2 text-4xl font-semibold tracking-[-0.045em] sm:text-5xl">Marketplace</h1><p className="mt-3 max-w-2xl text-[15px] leading-7 text-[#626b64]">Buy and sell across the valley without digging through unrelated Front Range listings or an algorithmic feed.</p></div><Link href="/marketplace/new" className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#173f30] px-5 py-3 text-sm font-semibold text-white"><Plus size={17}/> Post a listing</Link></div><div className="mt-7 grid gap-3 rounded-xl border border-[#e0e4df] bg-[#f8f9f7] p-4 sm:grid-cols-3"><div className="flex gap-3"><ShieldCheck size={19} className="mt-0.5 text-[#173f30]"/><div><strong className="text-sm">Local first</strong><p className="mt-1 text-xs leading-5 text-[#707871]">Town and valley filters keep results relevant.</p></div></div><div className="flex gap-3"><CheckCircle2 size={19} className="mt-0.5 text-[#173f30]"/><div><strong className="text-sm">Fresh listings</strong><p className="mt-1 text-xs leading-5 text-[#707871]">Newest listings are shown first by default.</p></div></div><div className="flex gap-3"><Sparkles size={19} className="mt-0.5 text-[#173f30]"/><div><strong className="text-sm">Less clutter</strong><p className="mt-1 text-xs leading-5 text-[#707871]">No engagement bait or endless social feed.</p></div></div></div></div></section>
+    <section className="container-site py-7"><form action="/marketplace" className="grid gap-2 rounded-xl border border-[#dde2dc] bg-white p-3 lg:grid-cols-[minmax(220px,1fr)_160px_130px_110px_110px_auto]"><label className="flex items-center gap-2 rounded-lg border border-[#dfe3de] px-3"><Search size={16} className="text-[#6f7871]"/><input name="q" defaultValue={filters.q} placeholder="Search listings" className="h-10 min-w-0 flex-1 outline-none"/></label><select name="town" defaultValue={filters.town||""} className="h-10 rounded-lg border border-[#dfe3de] bg-white px-3 text-sm"><option value="">Entire valley</option>{TOWNS.map((town)=><option key={town.slug} value={town.slug}>{town.name}</option>)}</select><select name="sort" defaultValue={filters.sort||"newest"} className="h-10 rounded-lg border border-[#dfe3de] bg-white px-3 text-sm"><option value="newest">Newest</option><option value="price-low">Price: low</option><option value="price-high">Price: high</option></select><input name="min" type="number" min="0" defaultValue={filters.min} placeholder="Min $" className="h-10 rounded-lg border border-[#dfe3de] px-3 text-sm"/><input name="max" type="number" min="0" defaultValue={filters.max} placeholder="Max $" className="h-10 rounded-lg border border-[#dfe3de] px-3 text-sm"/><button className="h-10 rounded-lg bg-[#173f30] px-4 text-sm font-semibold text-white">Filter</button></form>
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]"><Link href={urlFor(filters,{category:undefined})} className={`whitespace-nowrap rounded-full border px-3.5 py-2 text-sm font-medium ${!filters.category?"border-[#173f30] bg-[#173f30] text-white":"border-[#d8ddd8] bg-white"}`}>All</Link>{MARKETPLACE_CATEGORIES.map((category)=><Link key={category} href={urlFor(filters,{category})} className={`whitespace-nowrap rounded-full border px-3.5 py-2 text-sm font-medium ${filters.category===category?"border-[#173f30] bg-[#173f30] text-white":"border-[#d8ddd8] bg-white"}`}>{titleize(category)}</Link>)}</div>
+      <div className="mt-6 flex items-center justify-between"><p className="text-sm font-semibold">{listings.length} {listings.length===1?"listing":"listings"}</p>{(filters.q||filters.town||filters.category||filters.min||filters.max)?<Link href="/marketplace" className="text-xs font-semibold text-[#173f30]">Clear filters</Link>:null}</div>
+      {listings.length?<div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{listings.map((listing)=><ListingCard key={listing.id} listing={listing}/>)}</div>:<div className="mt-5 rounded-xl border border-dashed border-[#ccd4cd] bg-white p-10 text-center"><h2 className="text-lg font-semibold">No listings match yet</h2><p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[#6d756f]">Try widening the town or price filters—or post the thing you are ready to sell.</p><Link href="/marketplace/new" className="mt-4 inline-flex rounded-lg bg-[#173f30] px-4 py-2.5 text-sm font-semibold text-white">Post a listing</Link></div>}
+    </section>
+  </main>;
 }

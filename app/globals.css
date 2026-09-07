@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fbfaf7;
-  --foreground: #171917;
-  --muted: #666b66;
+  --background: #fbfaf6;
+  --foreground: #1b211d;
+  --muted: #626a64;
   --line: #dedfd9;
   --line-strong: #c9ccc5;
   --brand: #173f30;
   --brand-hover: #0f3225;
-  --accent: #a94f32;
+  --accent: #b28a24;
   --surface: #ffffff;
-  --surface-muted: #f2f1ed;
+  --surface-muted: #f3f1eb;
 }
 
 * {
@@ -46,19 +46,23 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+img {
+  max-width: 100%;
+}
+
 ::selection {
   background: #dce9e2;
 }
 
 .container-site {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1420px, calc(100% - 72px));
   margin-inline: auto;
 }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .panel {
@@ -67,9 +71,11 @@ a {
 }
 
 .eyebrow {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: #8a6a22;
 }
 
 .text-balance {
@@ -89,4 +95,16 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid #276b4e;
   outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .container-site {
+    width: min(100% - 32px, 1420px);
+  }
+}
+
+@media (max-width: 640px) {
+  .container-site {
+    width: min(100% - 24px, 1420px);
+  }
 }
