@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ListingCard } from "@/components/listing-card";
 import { PrimaryNav } from "@/components/primary-nav";
-import { getEvents, getRestaurants } from "@/lib/data";
-import { cuisineLabel, getTown } from "@/lib/constants";
+import { getEvents, getListings, getRestaurants } from "@/lib/data";
+import { CUISINES, cuisineLabel, getTown } from "@/lib/constants";
 
 function eventTime(value: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -12,12 +13,21 @@ function eventTime(value: string) {
   }).format(new Date(value));
 }
 
+function withTown(path: string, town?: string) {
+  if (!town) return path;
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}town=${encodeURIComponent(town)}`;
+}
+
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ town?: string }> }) {
   const { town } = await searchParams;
-  const [events, sponsors] = await Promise.all([
+  const [events, listings, sponsors] = await Promise.all([
     getEvents({ town, limit: 3, todayOnly: true }),
+    getListings({ town, limit: 3 }),
     getRestaurants({ town, advertiserOnly: true, limit: 3 })
   ]);
+
+  const cuisineLinks = CUISINES.filter((item) => item.value);
 
   return (
     <main>
@@ -41,13 +51,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <section className="container-site py-10 sm:py-12">
         <div className="flex items-baseline justify-between gap-4 border-b border-[#d6d8d2] pb-3">
           <h2 className="text-2xl font-semibold tracking-[-0.02em]">Tonight</h2>
-          <Link href={town ? `/events?town=${town}` : "/events"} className="text-sm font-semibold text-[#315e49] hover:underline">See all events →</Link>
+          <Link href={withTown("/events", town)} className="text-sm font-semibold text-[#315e49] hover:underline">See all events →</Link>
         </div>
         <div className="bg-white">
           {events.map((event, index) => (
             <Link
               key={event.id}
-              href={town ? `/events?town=${town}` : "/events"}
+              href={withTown("/events", town)}
               className={`grid gap-2 py-4 hover:bg-[#f7f6f2] sm:grid-cols-[160px_1fr_120px] sm:items-center ${index ? "border-t border-[#e2e3de]" : ""}`}
             >
               <span className="text-[13px] font-semibold text-[#6a706b]">{getTown(event.town)?.name}</span>
@@ -59,8 +69,40 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </div>
       </section>
 
+      <section className="container-site pb-10 sm:pb-12">
+        <div className="flex items-baseline justify-between gap-4 border-b border-[#d6d8d2] pb-3">
+          <h2 className="text-2xl font-semibold tracking-[-0.02em]">Eat by cuisine</h2>
+          <Link href={withTown("/restaurants", town)} className="text-sm font-semibold text-[#315e49] hover:underline">All restaurants →</Link>
+        </div>
+        <div className="grid grid-cols-2 border-b border-l border-[#dedfd9] sm:grid-cols-3 lg:grid-cols-6">
+          {cuisineLinks.map((cuisine) => (
+            <Link
+              key={cuisine.value}
+              href={withTown(`/restaurants?cuisine=${cuisine.value}`, town)}
+              className="border-r border-t border-[#dedfd9] bg-white px-4 py-5 text-center text-sm font-semibold hover:bg-[#f7f6f2]"
+            >
+              {cuisine.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="container-site pb-12 sm:pb-16">
+        <div className="flex items-baseline justify-between gap-4 border-b border-[#d6d8d2] pb-3">
+          <h2 className="text-2xl font-semibold tracking-[-0.02em]">New in Marketplace</h2>
+          <Link href={withTown("/marketplace", town)} className="text-sm font-semibold text-[#315e49] hover:underline">See all listings →</Link>
+        </div>
+        {listings.length ? (
+          <div className="grid gap-4 pt-5 sm:grid-cols-2 lg:grid-cols-3">
+            {listings.map((listing) => <ListingCard key={listing.id} listing={listing} />)}
+          </div>
+        ) : (
+          <p className="py-5 text-sm text-[#666d67]">No marketplace listings are active for this town yet.</p>
+        )}
+      </section>
+
       {sponsors.length ? (
-        <section className="container-site pb-12 pt-2 sm:pb-16">
+        <section className="container-site pb-12 sm:pb-16">
           <div className="flex items-baseline justify-between gap-4 border-b border-[#d6d8d2] pb-3">
             <h2 className="text-xl font-semibold tracking-[-0.02em]">Sponsored</h2>
             <span className="text-[12px] text-[#777d78]">Paid advertising</span>
@@ -93,6 +135,19 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </div>
         </section>
       ) : null}
+
+      <section className="border-y border-[#d8dad4] bg-[#f1efe8]">
+        <div className="container-site flex flex-col gap-5 py-9 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6b716c]">One local account</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em]">One account for the whole corridor.</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#5f665f]">Post marketplace listings, verify your phone once, and take part in local votes from Aspen through Rifle.</p>
+          </div>
+          <Link href="/account" className="inline-flex shrink-0 items-center justify-center rounded-md bg-[#163b2d] px-5 py-3 text-sm font-semibold text-white hover:bg-[#204c3a]">
+            Create or sign in
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }
