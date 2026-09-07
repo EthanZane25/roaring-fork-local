@@ -3,13 +3,20 @@ import { SignInForm } from "@/components/sign-in-form";
 
 export const metadata: Metadata = { title: "Sign in", robots: { index: false, follow: true } };
 
-export default function SignInPage() {
+export default async function SignInPage({
+  searchParams
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+  const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/account";
+
   return (
     <main className="container-site max-w-lg py-14">
       <p className="eyebrow">Account</p>
       <h1 className="mt-3 text-4xl font-semibold tracking-[-.02em]">Your local account</h1>
-      <p className="mt-4 mb-8 leading-7 text-[#5e665e]">Vote, post classifieds, message sellers and save local favorites with one account.</p>
-      <SignInForm />
+      <p className="mb-8 mt-4 leading-7 text-[#5e665e]">Vote, post classifieds, message sellers and save local favorites with one account.</p>
+      <SignInForm nextPath={safeNext} />
     </main>
   );
 }

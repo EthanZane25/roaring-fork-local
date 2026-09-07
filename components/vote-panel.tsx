@@ -100,7 +100,7 @@ export function VotePanel({ contest }: { contest: Contest }) {
   return (
     <section id={contest.slug} className="scroll-mt-24 border border-[#d9dbd5] bg-white p-5 sm:p-6">
       <h2 className="text-2xl font-semibold tracking-[-0.025em]">{contest.title}</h2>
-      <p className="mt-2 text-sm leading-6 text-[#606660]">One vote per person. You can change it until {endDate}. Sign in to vote.</p>
+      <p className="mt-2 text-sm leading-6 text-[#606660]">Live results are public. One vote per verified phone, so locals decide—not bots. You can change it until {endDate}.</p>
 
       {contest.restaurants.length > 12 ? (
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search eligible restaurants" className="mt-5 h-10 w-full border border-[#cfd2cb] bg-white px-3 text-sm" />
@@ -112,7 +112,7 @@ export function VotePanel({ contest }: { contest: Contest }) {
           const percent = total ? (votes / total) * 100 : 0;
           const chosen = eligibility.state === "already_voted" && eligibility.restaurantId === restaurant.restaurantId;
           return (
-            <label key={restaurant.restaurantId} className={`block py-3 ${canChoose ? "cursor-pointer" : "cursor-default"}`}>
+            <label key={restaurant.restaurantId} className={`block min-h-11 py-4 ${canChoose ? "cursor-pointer" : "cursor-default"}`}>
               <div className="flex items-start gap-3">
                 {canChoose ? <input type="radio" name={contest.id} value={restaurant.restaurantId} checked={selected === restaurant.restaurantId} onChange={() => setSelected(restaurant.restaurantId)} className="mt-1" /> : null}
                 <div className="min-w-0 flex-1">
@@ -131,11 +131,13 @@ export function VotePanel({ contest }: { contest: Contest }) {
 
       <div className="mt-5">
         {eligibility.state === "loading" ? <p className="text-sm text-[#6b716c]">Checking your voting status…</p> : null}
-        {eligibility.state === "logged_out" ? <Link href="/sign-in" className="inline-flex bg-[#173f30] px-4 py-2.5 text-sm font-semibold text-white">Sign in to vote</Link> : null}
+        {eligibility.state === "logged_out" ? <Link href={`/sign-in?next=${encodeURIComponent(`/vote#${contest.slug}`)}`} className="inline-flex min-h-11 items-center rounded-md bg-[#173f30] px-4 text-sm font-semibold text-white">Sign in to lock your vote</Link> : null}
         {eligibility.state === "unverified" ? (
           <div>
-            <p className="text-sm text-[#5f665f]">Verify {eligibility.needs?.join(" and ") || "your account"} to vote.</p>
-            <Link href="/account" className="mt-3 inline-flex border border-[#bfc7c0] bg-white px-4 py-2.5 text-sm font-semibold text-[#173f30]">Verify email / phone to vote</Link>
+            <p className="text-sm font-semibold text-[#39423c]">Finish verification to vote.</p>
+            <p className="mt-2 text-xs leading-5 text-[#69716b]">Email {eligibility.needs?.includes("email") ? "○" : "✓"} · Phone {eligibility.needs?.includes("phone") ? "○" : "✓"} · Vote ○</p>
+            <p className="mt-2 text-xs leading-5 text-[#69716b]">One verified phone gets one vote. This keeps duplicate and automated votes out without hiding live results.</p>
+            <Link href="/account" className="mt-3 inline-flex min-h-11 items-center rounded-md border border-[#bfc7c0] bg-white px-4 text-sm font-semibold text-[#173f30]">Finish verification</Link>
           </div>
         ) : null}
         {eligibility.state === "can_vote" || isChanging ? (
@@ -154,7 +156,7 @@ export function VotePanel({ contest }: { contest: Contest }) {
           <div className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-[#3f6b54] pl-4">
             <div>
               <p className="text-sm font-semibold">Your vote: {eligibility.restaurantName}</p>
-              {eligibility.voteStatus === "held" ? <p className="mt-1 text-xs text-[#707771]">This vote is under verification and is not included in public totals yet.</p> : null}
+              {eligibility.voteStatus === "held" ? <p className="mt-1 max-w-lg text-xs leading-5 text-[#707771]">This vote is being checked and is not in the public total yet. Check this page later; if it clears verification it will be counted automatically.</p> : null}
             </div>
             <button type="button" onClick={() => setEditing(true)} className="border border-[#bfc7c0] bg-white px-4 py-2 text-sm font-semibold text-[#173f30]">Change vote</button>
           </div>

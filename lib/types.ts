@@ -27,7 +27,7 @@ export type Restaurant = {
   imageUrl: string;
   isAdvertiser: boolean;
   openNow?: boolean;
-  verifiedAt: string;
+  verifiedAt?: string;
   localVotes: number;
   tags: string[];
 };

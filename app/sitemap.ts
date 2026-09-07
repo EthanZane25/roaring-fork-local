@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const restaurantUrls = restaurants.map((restaurant) => ({
     url: `${SITE_URL}/restaurants/${restaurant.slug}`,
-    lastModified: new Date(restaurant.verifiedAt),
+    lastModified: restaurant.verifiedAt ? new Date(restaurant.verifiedAt) : now,
     changeFrequency: "weekly" as const,
     priority: 0.75
   }));

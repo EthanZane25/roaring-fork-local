@@ -6,12 +6,14 @@ import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { Turnstile } from "@/components/turnstile";
 
-export function SignInForm() {
+export function SignInForm({ nextPath = "/account" }: { nextPath?: string }) {
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
+
+  const safeNext = nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/account";
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,6 +27,7 @@ export function SignInForm() {
     const email = String(form.get("email") || "");
     const password = String(form.get("password") || "");
     const displayName = String(form.get("displayName") || "");
+
     if (mode === "signup") {
       const response = await fetch("/api/account/sign-up", {
         method: "POST",
@@ -41,7 +44,7 @@ export function SignInForm() {
       else {
         setStatus("Signed in.");
         router.refresh();
-        router.push("/account");
+        router.push(safeNext);
       }
     }
     setPending(false);
@@ -51,7 +54,7 @@ export function SignInForm() {
     <form onSubmit={submit} className="card p-7">
       <div className="mb-6 flex rounded-md bg-[#efeee8] p-1">
         {(["signin","signup"] as const).map((item) => (
-          <button type="button" key={item} onClick={() => setMode(item)} className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === item ? "bg-white shadow-sm" : "text-[#667066]"}`}>
+          <button type="button" key={item} onClick={() => setMode(item)} className={`min-h-11 flex-1 rounded-lg px-3 py-2 text-sm font-semibold ${mode === item ? "bg-white shadow-sm" : "text-[#667066]"}`}>
             {item === "signin" ? "Sign in" : "Create account"}
           </button>
         ))}
@@ -59,19 +62,19 @@ export function SignInForm() {
       {mode === "signup" ? (
         <label className="mb-4 grid gap-2">
           <span className="text-sm font-bold">Name</span>
-          <input name="displayName" required className="rounded-md border border-[#d6d8d1] px-4 py-3" />
+          <input name="displayName" required className="min-h-11 rounded-md border border-[#d6d8d1] px-4 py-3" />
         </label>
       ) : null}
       <label className="mb-4 grid gap-2">
         <span className="text-sm font-bold">Email</span>
-        <input name="email" type="email" required className="rounded-md border border-[#d6d8d1] px-4 py-3" />
+        <input name="email" type="email" required className="min-h-11 rounded-md border border-[#d6d8d1] px-4 py-3" />
       </label>
       <label className="grid gap-2">
         <span className="text-sm font-bold">Password</span>
-        <input name="password" type="password" minLength={8} required className="rounded-md border border-[#d6d8d1] px-4 py-3" />
+        <input name="password" type="password" minLength={8} required className="min-h-11 rounded-md border border-[#d6d8d1] px-4 py-3" />
       </label>
       {mode === "signup" ? <div className="mt-5"><Turnstile action="signup" onToken={setCaptchaToken} /></div> : null}
-      <button disabled={pending} className="mt-6 w-full rounded-md bg-[#163b2d] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">
+      <button disabled={pending} className="mt-6 min-h-11 w-full rounded-md bg-[#163b2d] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">
         {pending ? "Working..." : mode === "signin" ? "Sign in" : "Create account"}
       </button>
       {status ? <p className="mt-4 text-sm leading-6 text-[#596159]">{status}</p> : null}
