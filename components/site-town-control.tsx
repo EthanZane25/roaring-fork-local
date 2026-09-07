@@ -70,13 +70,13 @@ export function SiteTownControl() {
   }
 
   return (
-    <label className="relative flex h-9 items-center border border-[#d8dad4] bg-white">
-      <MapPin size={14} className="pointer-events-none absolute left-2.5 text-[#617068]" />
+    <label className="relative flex h-10 items-center rounded-md border border-[#d8dad4] bg-white">
+      <MapPin size={16} strokeWidth={1.6} className="pointer-events-none absolute left-3 text-[#617068]" />
       <span className="sr-only">Town</span>
       <select
         value={value}
         onChange={(event) => change(event.target.value)}
-        className="h-full w-[108px] appearance-none bg-transparent pl-8 pr-6 text-xs font-medium outline-none sm:w-[154px]"
+        className="h-full w-[126px] appearance-none bg-transparent pl-9 pr-7 text-sm font-medium outline-none sm:w-[176px]"
         aria-label="Town"
       >
         <option value="">All towns</option>

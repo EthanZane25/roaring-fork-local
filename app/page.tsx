@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ListingCard } from "@/components/listing-card";
-import { PrimaryNav } from "@/components/primary-nav";
+import { RoaringForkMountains } from "@/components/roaring-fork-mountains";
 import { getEvents, getListings, getRestaurants } from "@/lib/data";
 import { CUISINES, cuisineLabel, getTown } from "@/lib/constants";
 
@@ -32,19 +32,20 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   return (
     <main>
       <section className="bg-white">
-        <div className="container-site py-12 sm:py-16">
-          <div className="max-w-4xl">
-            <h1 className="text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">Local life, all in one place.</h1>
-            <p className="mt-4 max-w-3xl text-[16px] leading-7 text-[#5f665f] sm:text-lg">
+        <div className="container-site grid min-h-[360px] items-center gap-10 py-12 sm:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:py-18">
+          <div className="max-w-[620px]">
+            <h1 className="font-serif text-5xl font-semibold leading-[0.94] tracking-[-0.045em] text-[#173f30] sm:text-6xl lg:text-7xl">
+              Local life,<br />all in one place.
+            </h1>
+            <div className="mt-7 h-[2px] w-16 bg-[#b54d2f]" />
+            <p className="mt-6 max-w-xl text-[17px] leading-7 text-[#5f665f] sm:text-lg">
               Food, classifieds, jobs, housing, and local votes from Aspen to Rifle.
             </p>
           </div>
-        </div>
-      </section>
 
-      <section className="border-y border-[#dedfd9] bg-white">
-        <div className="container-site">
-          <PrimaryNav town={town} />
+          <div className="hidden h-[300px] text-[#668977] lg:block">
+            <RoaringForkMountains />
+          </div>
         </div>
       </section>
 

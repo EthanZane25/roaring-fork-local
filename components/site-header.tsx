@@ -1,53 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { UserRound } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { PrimaryNav } from "@/components/primary-nav";
 import { SiteSearch } from "@/components/site-search";
 import { SiteTownControl } from "@/components/site-town-control";
 
 export function SiteHeader() {
-  const pathname = usePathname();
-  const isHome = pathname === "/";
-
   return (
-    <header className="border-b border-[#dedfd9] bg-white">
+    <header className="sticky top-0 z-50 border-b border-[#dedfd9] bg-white/95 backdrop-blur-md">
       <div className="container-site">
-        <div className="flex min-h-[58px] items-center gap-4 py-2">
+        <div className="flex min-h-[72px] items-center gap-4">
           <Logo />
-
-          <div className="ml-auto hidden min-w-0 items-center gap-2 md:flex">
-            <SiteTownControl />
-            <div className="w-[210px]">
-              <SiteSearch />
-            </div>
-            <Link
-              href="/account"
-              className="inline-flex h-9 shrink-0 items-center px-2 text-[13px] font-medium text-[#3f4540] hover:text-[#173f30]"
-            >
-              Account
-            </Link>
-          </div>
 
           <Link
             href="/account"
-            className="ml-auto inline-flex h-9 items-center px-2 text-sm font-medium text-[#3f4540] md:hidden"
+            className="ml-auto inline-flex h-10 shrink-0 items-center gap-2 px-2 text-[14px] font-medium text-[#242824] hover:text-[#173f30]"
           >
-            Account
+            <span>Account</span>
+            <UserRound size={20} strokeWidth={1.6} />
           </Link>
         </div>
 
-        <div className="flex gap-2 border-t border-[#ecece8] py-2 md:hidden">
-          <SiteTownControl />
-          <SiteSearch />
-        </div>
+        <div className="border-t border-[#ecece8] lg:flex lg:items-center lg:gap-6">
+          <PrimaryNav className="min-w-0 flex-1" />
 
-        {!isHome ? (
-          <div className="border-t border-[#ecece8]">
-            <PrimaryNav />
+          <div className="flex gap-2 border-t border-[#ecece8] py-2 lg:w-auto lg:shrink-0 lg:border-t-0 lg:py-0">
+            <SiteTownControl />
+            <div className="min-w-0 flex-1 sm:w-[310px] sm:flex-none">
+              <SiteSearch />
+            </div>
           </div>
-        ) : null}
+        </div>
       </div>
     </header>
   );
