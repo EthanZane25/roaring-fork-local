@@ -1,76 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Plus, UserRound } from "lucide-react";
+import { Menu, UserRound } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { PrimaryNav } from "@/components/primary-nav";
-import { SiteSearch } from "@/components/site-search";
-import { SiteTownControl } from "@/components/site-town-control";
-
-const SECONDARY = [
-  ["Blog", "/blog"],
-  ["Account", "/account"]
-] as const;
+import {
+  PRIMARY_NAV,
+  PrimaryNav
+} from "@/components/primary-nav";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-[#deddd6] bg-[#fbfaf5]/97 backdrop-blur-xl">
-      <div className="container-site">
-        <div className="flex items-center gap-3 py-2.5 md:gap-4">
-          <div className="shrink-0">
-            <Logo compact />
-          </div>
+    <header className="relative z-50 border-b border-[#e3dfd5] bg-[#faf7ef]">
+      <div className="container-site flex min-h-[132px] items-center">
+        <div className="shrink-0">
+          <Logo />
+        </div>
 
-          <div className="hidden min-w-[145px] md:block">
-            <SiteTownControl compact />
-          </div>
+        <div className="ml-auto hidden items-center gap-3 md:flex">
+          <PrimaryNav />
 
-          <div className="hidden min-w-0 flex-1 md:block">
-            <SiteSearch compact />
-          </div>
+          <Link
+            href="/marketplace/new"
+            className="ml-2 whitespace-nowrap px-3 py-3 text-[14px] font-medium text-[#173f30] transition hover:text-[#0d2d20]"
+          >
+            Post a listing
+          </Link>
 
           <Link
             href="/account"
             aria-label="Account"
-            className="ml-auto grid h-11 w-11 shrink-0 place-items-center rounded-full text-[#173f30] hover:bg-[#f0eee7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2f6b52]"
+            className="ml-1 grid h-11 w-11 place-items-center text-[#173f30]"
           >
-            <UserRound size={24} strokeWidth={1.55} />
+            <UserRound
+              size={30}
+              strokeWidth={1.35}
+            />
           </Link>
         </div>
 
-        <div className="grid grid-cols-[minmax(0,0.46fr)_minmax(0,1fr)] gap-2 pb-2.5 md:hidden">
-          <SiteTownControl compact />
-          <SiteSearch compact />
-        </div>
+        <details className="relative ml-auto md:hidden">
+          <summary className="grid h-11 w-11 cursor-pointer list-none place-items-center text-[#173f30] [&::-webkit-details-marker]:hidden">
+            <Menu size={25} />
+          </summary>
 
-        <div className="flex min-h-11 items-center justify-between border-t border-[#ebe8df]">
-          <PrimaryNav />
-
-          <div className="hidden items-center gap-1 md:flex">
-            {SECONDARY.slice(0, 1).map(([label, href]) => (
-              <Link key={href} href={href} className="px-2.5 py-3 text-[13px] font-medium text-[#667069] hover:text-[#173f30]">
+          <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-lg border border-[#ddd9ce] bg-[#faf7ef] p-2 shadow-xl">
+            {PRIMARY_NAV.map(([label, href]) => (
+              <Link
+                key={href}
+                href={href}
+                className="block rounded-md px-4 py-3 text-sm font-medium hover:bg-[#f0ece2]"
+              >
                 {label}
               </Link>
             ))}
-            <Link href="/marketplace/new" className="ml-1 inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[#173f30] px-3.5 text-[13px] font-semibold text-white">
-              <Plus size={15} /> Post
+
+            <Link
+              href="/marketplace/new"
+              className="block rounded-md px-4 py-3 text-sm font-semibold text-[#173f30] hover:bg-[#f0ece2]"
+            >
+              Post a listing
             </Link>
           </div>
-
-          <details className="relative ml-2 md:hidden">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 px-2 text-[13px] font-semibold text-[#465149] [&::-webkit-details-marker]:hidden">
-              <Menu size={17} /> More
-            </summary>
-            <div className="absolute right-0 top-full z-50 mt-1 w-48 overflow-hidden rounded-xl border border-[#dadcd6] bg-white p-2 shadow-xl">
-              {SECONDARY.map(([label, href]) => (
-                <Link key={href} href={href} className="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-[#f5f3ed]">{label}</Link>
-              ))}
-              <Link href="/marketplace/new" className="mt-1 flex items-center gap-2 rounded-lg bg-[#173f30] px-3 py-2.5 text-sm font-semibold text-white">
-                <Plus size={15} /> Post a listing
-              </Link>
-            </div>
-          </details>
-        </div>
+        </details>
       </div>
     </header>
   );
