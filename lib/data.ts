@@ -81,7 +81,7 @@ export async function getListings(input?: { town?: string; category?: string; li
 export async function getListing(slug: string) {
   if (!hasSupabaseEnv()) return demoListings.find((x) => x.slug === slug) ?? null;
   const supabase = await createClient();
-  const { data, error } = await supabase.from("marketplace_listings").select("*").eq("slug", slug).eq("status", "active").maybeSingle();
+  const { data, error } = await supabase.from("marketplace_listings").select("*").eq("slug", slug).maybeSingle();
   if (error) throw error;
   return data ? mapListing(data) : null;
 }
@@ -359,7 +359,8 @@ function mapListing(row: any): MarketplaceListing {
     imageUrl: row.image_url ?? "",
     createdAt: row.created_at,
     sellerName: row.seller_name ?? "Local seller",
-    sellerVerified: Boolean(row.seller_verified)
+    sellerVerified: Boolean(row.seller_verified),
+    status: row.status ?? "active"
   };
 }
 

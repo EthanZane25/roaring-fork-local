@@ -61,6 +61,7 @@ export type MarketplaceListing = {
   createdAt: string;
   sellerName: string;
   sellerVerified: boolean;
+  status: "draft" | "held" | "active" | "sold" | "expired" | "removed";
 };
 
 export type ContestRestaurant = {

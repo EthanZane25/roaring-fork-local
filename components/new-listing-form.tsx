@@ -4,23 +4,45 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { MARKETPLACE_CATEGORIES, TOWNS, titleize } from "@/lib/constants";
+import { PhoneVerification } from "@/components/phone-verification";
 import { Turnstile } from "@/components/turnstile";
 
-export function NewListingForm() {
+export function NewListingForm({
+  phoneVerified,
+  phoneLast4,
+  requiresFreshCode
+}: {
+  phoneVerified: boolean;
+  phoneLast4?: string | null;
+  requiresFreshCode: boolean;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
+  const [phoneReady, setPhoneReady] = useState(phoneVerified && !requiresFreshCode);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!phoneReady) {
+      setStatus("Verify your mobile number before publishing.");
+      return;
+    }
+
     setPending(true);
     setStatus("");
 
     const form = new FormData(event.currentTarget);
+    if (turnstileToken) form.set("cf-turnstile-response", turnstileToken);
+
     const response = await fetch("/api/listings", { method: "POST", body: form });
     const body = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      if (body.code === "PHONE_VERIFICATION_REQUIRED" || body.code === "PHONE_STEPUP_REQUIRED") {
+        setPhoneReady(false);
+      }
       setStatus(body.error || "Unable to submit listing.");
       setPending(false);
       return;
@@ -40,50 +62,72 @@ export function NewListingForm() {
   const inputClass = "rounded-xl border border-[#d8ddd8] bg-white px-4 py-3 outline-none transition focus:border-[#2f6b52] focus:shadow-[0_0_0_3px_rgba(47,107,82,0.08)]";
 
   return (
-    <form onSubmit={submit} className="card p-6 sm:p-8">
-      <div className="grid gap-5 sm:grid-cols-2">
-        <label className="grid gap-2 sm:col-span-2">
-          <span className="text-sm font-bold">Title</span>
-          <input name="title" required maxLength={100} className={inputClass} placeholder="What are you selling?" />
-        </label>
+    <div className="grid gap-5">
+      <PhoneVerification
+        verified={phoneVerified}
+        last4={phoneLast4}
+        purpose="create_listing"
+        requireFreshCode={requiresFreshCode}
+        onVerified={() => setPhoneReady(true)}
+      />
 
-        <label className="grid gap-2">
-          <span className="text-sm font-bold">Price</span>
-          <input name="price" type="number" min="0" step="1" required className={inputClass} placeholder="0 for free" />
-        </label>
+      <form onSubmit={submit} className="card p-6 sm:p-8">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="grid gap-2 sm:col-span-2">
+            <span className="text-sm font-bold">Title</span>
+            <input name="title" required maxLength={100} className={inputClass} placeholder="What are you selling?" />
+          </label>
 
-        <label className="grid gap-2">
-          <span className="text-sm font-bold">Town</span>
-          <select name="town" required className={inputClass}>
-            {TOWNS.map((town) => <option key={town.slug} value={town.slug}>{town.name}</option>)}
-          </select>
-        </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-bold">Price</span>
+            <input name="price" type="number" min="0" step="1" required className={inputClass} placeholder="0 for free" />
+          </label>
 
-        <label className="grid gap-2">
-          <span className="text-sm font-bold">Category</span>
-          <select name="category" required className={inputClass}>
-            {MARKETPLACE_CATEGORIES.map((category) => <option key={category} value={category}>{titleize(category)}</option>)}
-          </select>
-        </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-bold">Town</span>
+            <select name="town" required className={inputClass}>
+              {TOWNS.map((town) => <option key={town.slug} value={town.slug}>{town.name}</option>)}
+            </select>
+          </label>
 
-        <label className="grid gap-2">
-          <span className="text-sm font-bold">Primary photo</span>
-          <input name="image" type="file" accept="image/jpeg,image/png,image/webp" className={inputClass} />
-        </label>
+          <label className="grid gap-2">
+            <span className="text-sm font-bold">Category</span>
+            <select name="category" required className={inputClass}>
+              {MARKETPLACE_CATEGORIES.map((category) => <option key={category} value={category}>{titleize(category)}</option>)}
+            </select>
+          </label>
 
-        <label className="grid gap-2 sm:col-span-2">
-          <span className="text-sm font-bold">Description</span>
-          <textarea name="description" required maxLength={4000} rows={6} className={inputClass} placeholder="Condition, pickup details, size, etc." />
-        </label>
-      </div>
+          <label className="grid gap-2">
+            <span className="text-sm font-bold">Primary photo</span>
+            <input name="image" type="file" accept="image/jpeg,image/png,image/webp" className={inputClass} />
+          </label>
 
-      <div className="mt-5"><Turnstile action="create_listing" /></div>
+          <label className="grid gap-2 sm:col-span-2">
+            <span className="text-sm font-bold">Description</span>
+            <textarea name="description" required maxLength={4000} rows={6} className={inputClass} placeholder="Condition, pickup details, size, etc." />
+          </label>
+        </div>
 
-      <button disabled={pending} className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-[#123c2f] px-6 py-3 text-sm font-bold text-white disabled:opacity-50">
-        {pending ? <Loader2 size={16} className="animate-spin" /> : null} Publish listing
-      </button>
+        <div className="mt-5">
+          <Turnstile action="create_listing" onToken={setTurnstileToken} />
+        </div>
 
-      {status ? <p className="mt-4 text-sm font-semibold text-[#59635c]">{status}</p> : null}
-    </form>
+        <button
+          disabled={pending || !phoneReady}
+          className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-[#123c2f] px-6 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {pending ? <Loader2 size={16} className="animate-spin" /> : null}
+          Publish listing
+        </button>
+
+        {!phoneReady ? (
+          <p className="mt-3 text-xs leading-5 text-[#6a716b]">
+            Mobile verification is required before the listing can be published.
+          </p>
+        ) : null}
+
+        {status ? <p className="mt-4 text-sm font-semibold text-[#59635c]">{status}</p> : null}
+      </form>
+    </div>
   );
 }

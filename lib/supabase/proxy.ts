@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { DEVICE_COOKIE_MAX_AGE, DEVICE_COOKIE_NAME } from "@/lib/device-security";
 
 export async function updateSession(request: NextRequest) {
   if (!hasSupabaseEnv()) return NextResponse.next({ request });
@@ -27,5 +28,16 @@ export async function updateSession(request: NextRequest) {
   );
 
   await supabase.auth.getClaims();
+
+  if (!request.cookies.get(DEVICE_COOKIE_NAME)?.value) {
+    response.cookies.set(DEVICE_COOKIE_NAME, crypto.randomUUID(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: DEVICE_COOKIE_MAX_AGE
+    });
+  }
+
   return response;
 }
