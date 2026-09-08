@@ -11,3 +11,5 @@ coverage
 
 *.tsbuildinfo
 .rfl-backups/
+
+.design-backup/
