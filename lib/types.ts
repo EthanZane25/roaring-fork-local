@@ -7,7 +7,26 @@ export type Town = {
   tagline: string;
 };
 
-export type Cuisine = "american" | "italian" | "mexican" | "japanese" | "cafe-bakery" | "other";
+export type Cuisine =
+  | "american"
+  | "new-american"
+  | "italian"
+  | "pizza"
+  | "mexican"
+  | "mexican-latin"
+  | "japanese"
+  | "asian-sushi"
+  | "cafe-bakery"
+  | "french-european"
+  | "seafood"
+  | "steakhouse"
+  | "bbq"
+  | "deli-fast-casual"
+  | "pub-food"
+  | "bar-apres"
+  | "global"
+  | "vegetarian"
+  | "other";
 
 export type Restaurant = {
   id: string;

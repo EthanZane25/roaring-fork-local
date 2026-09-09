@@ -19,12 +19,36 @@ export const TOWNS: Town[] = [
 
 
 export const CUISINES = [
-  { value: "", label: "All" },
+  { value: "", label: "All places to eat" },
+
   { value: "american", label: "American" },
+  { value: "new-american", label: "New American" },
+
   { value: "italian", label: "Italian" },
-  { value: "mexican", label: "Mexican" },
-  { value: "japanese", label: "Japanese" },
-  { value: "cafe-bakery", label: "Cafe & bakery" },
+  { value: "pizza", label: "Pizza" },
+
+  { value: "asian-sushi", label: "Asian & Sushi" },
+
+  { value: "mexican-latin", label: "Mexican & Latin" },
+
+  { value: "french-european", label: "French & European" },
+
+  { value: "seafood", label: "Seafood" },
+
+  { value: "steakhouse", label: "Steakhouse" },
+  { value: "bbq", label: "BBQ" },
+
+  { value: "cafe-bakery", label: "Breakfast, Coffee & Bakery" },
+
+  { value: "deli-fast-casual", label: "Deli & Fast Casual" },
+
+  { value: "pub-food", label: "Pub Food" },
+  { value: "bar-apres", label: "Bars & Après" },
+
+  { value: "global", label: "Global" },
+
+  { value: "vegetarian", label: "Vegetarian Friendly" },
+
   { value: "other", label: "Other" }
 ] as const;
 
