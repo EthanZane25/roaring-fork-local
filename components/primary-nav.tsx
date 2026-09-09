@@ -7,11 +7,12 @@ import { useSyncExternalStore } from "react";
 export const PRIMARY_NAV = [
   ["Home", "/"],
   ["Eat", "/restaurants"],
+  ["Deals", "/deals"],
   ["Marketplace", "/marketplace"],
   ["Events", "/events"],
   ["Jobs", "/jobs"],
   ["Housing", "/housing"],
-  ["Vote", "/vote"]
+  ["For Business", "/business"]
 ] as const;
 
 const TOWN_STORAGE_KEY = "rfl-town";
@@ -46,6 +47,7 @@ export function PrimaryNav({
   className?: string;
 }) {
   const pathname = usePathname();
+
   const rememberedTown = useSyncExternalStore(
     subscribeTown,
     currentTown,
@@ -56,13 +58,12 @@ export function PrimaryNav({
 
   return (
     <nav className={className} aria-label="Primary navigation">
-      <div className="flex items-center gap-1 lg:gap-3">
+      <div className="flex items-center gap-1 lg:gap-2">
         {PRIMARY_NAV.map(([label, href]) => {
-          const destination = activeTown
-            ? `${href}${href === "/" ? "?" : "?"}town=${encodeURIComponent(
-                activeTown
-              )}`
-            : href;
+          const destination =
+            activeTown && !href.startsWith("/business")
+              ? `${href}?town=${encodeURIComponent(activeTown)}`
+              : href;
 
           const active =
             href === "/"
@@ -74,7 +75,7 @@ export function PrimaryNav({
               key={href}
               href={destination}
               aria-current={active ? "page" : undefined}
-              className={`relative flex h-[54px] items-center whitespace-nowrap px-2 text-[14px] font-medium transition-colors lg:px-3 ${
+              className={`relative flex h-[54px] items-center whitespace-nowrap px-2 text-[14px] font-medium transition-colors ${
                 active
                   ? "text-[#1e3024]"
                   : "text-[#30332f] hover:text-[#173f30]"
@@ -83,7 +84,7 @@ export function PrimaryNav({
               {label}
 
               {active ? (
-                <span className="absolute inset-x-2 bottom-[5px] h-[2px] bg-[#b38a28] lg:inset-x-3" />
+                <span className="absolute inset-x-2 bottom-[5px] h-[2px] bg-[#b38a28]" />
               ) : null}
             </Link>
           );

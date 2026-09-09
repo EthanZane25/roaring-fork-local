@@ -39,7 +39,10 @@ export function SiteHeader() {
         </div>
 
         <details className="relative ml-auto md:hidden">
-          <summary className="grid h-11 w-11 cursor-pointer list-none place-items-center text-[#173f30] [&::-webkit-details-marker]:hidden">
+          <summary
+            aria-label="Open navigation menu"
+            className="grid h-11 w-11 cursor-pointer list-none place-items-center text-[#173f30] [&::-webkit-details-marker]:hidden"
+          >
             <Menu size={25} />
           </summary>
 
@@ -53,6 +56,13 @@ export function SiteHeader() {
                 {label}
               </Link>
             ))}
+
+            <Link
+              href="/account"
+              className="block rounded-md px-4 py-3 text-sm font-medium hover:bg-[#f0ece2]"
+            >
+              Account
+            </Link>
 
             <Link
               href="/marketplace/new"

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Crosshair, List, Map, Search, X } from "lucide-react";
+import { Crosshair, List, Map, Search, SlidersHorizontal, X } from "lucide-react";
 import type { Restaurant } from "@/lib/types";
 import { CUISINES, TOWNS, cuisineLabel, getTown } from "@/lib/constants";
 import { RestaurantRow } from "@/components/restaurant-row";
@@ -129,7 +129,7 @@ export function RestaurantDirectory({
   return (
     <>
       <div className="rounded-2xl border border-[#dfe3de] bg-white p-4 sm:p-5">
-        <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_170px_150px_120px_150px]">
+        <div className="grid gap-3 md:grid-cols-[minmax(220px,1fr)_170px_170px]">
           <label className="flex min-h-11 items-center gap-2.5 rounded-xl border border-[#d4dad5] bg-white px-3.5 focus-within:border-[#2f6b52] focus-within:shadow-[0_0_0_3px_rgba(47,107,82,0.08)]">
             <span className="sr-only">Search restaurants</span>
             <Search className="shrink-0 text-[#777f79]" size={17} />
@@ -146,18 +146,6 @@ export function RestaurantDirectory({
             {CUISINES.map((item) => <option key={item.value || "all"} value={item.value}>{item.value ? item.label : "All cuisines"}</option>)}
           </select>
 
-          <select value={price} onChange={(event) => setPrice(event.target.value)} className="min-h-11 rounded-xl border border-[#d4dad5] bg-white px-3 text-sm font-medium">
-            <option value="">Any price</option>
-            <option value="1">$</option>
-            <option value="2">$$</option>
-            <option value="3">$$$</option>
-            <option value="4">$$$$</option>
-          </select>
-
-          <select value={meal} onChange={(event) => setMeal(event.target.value)} className="min-h-11 rounded-xl border border-[#d4dad5] bg-white px-3 text-sm font-medium">
-            <option value="">Any meal</option>
-            {meals.map((item) => <option key={item} value={item}>{item.charAt(0).toUpperCase() + item.slice(1)}</option>)}
-          </select>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -170,29 +158,101 @@ export function RestaurantDirectory({
             Open now
           </button>
 
-          <span className="ml-1 text-xs font-semibold uppercase tracking-[.08em] text-[#7c847e]">Sort</span>
-          {[
-            ["open", "Open first"],
-            ["closest", "Closest"],
-            ["votes", "Most votes"],
-            ["az", "A–Z"]
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => chooseSort(value as SortMode)}
-              aria-pressed={sort === value}
-              className={`min-h-11 rounded-full border px-3.5 text-sm font-medium ${sort === value ? "border-[#8ea397] bg-[#eef3ef] text-[#173f30]" : "border-[#d7dad5] bg-white text-[#5c655f]"}`}
+          <details className="relative">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-full border border-[#d4dad5] bg-white px-4 text-sm font-semibold text-[#4f5952] [&::-webkit-details-marker]:hidden">
+              <SlidersHorizontal size={14} />
+              More filters
+              {price || meal ? (
+                <span className="rounded-full bg-[#173f30] px-1.5 py-0.5 text-[10px] text-white">
+                  {Number(Boolean(price)) + Number(Boolean(meal))}
+                </span>
+              ) : null}
+            </summary>
+
+            <div className="absolute left-0 top-[calc(100%+8px)] z-30 grid w-[280px] gap-4 rounded-xl border border-[#d9ddd8] bg-white p-4 shadow-[0_12px_35px_rgba(21,36,27,.14)]">
+              <label className="grid gap-1.5">
+                <span className="text-xs font-bold uppercase tracking-[.08em] text-[#737b75]">
+                  Price
+                </span>
+
+                <select
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                  className="min-h-11 rounded-lg border border-[#d4dad5] bg-white px-3 text-sm"
+                >
+                  <option value="">Any price</option>
+                  <option value="1">$</option>
+                  <option value="2">$$</option>
+                  <option value="3">$$$</option>
+                  <option value="4">$$$$</option>
+                </select>
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-xs font-bold uppercase tracking-[.08em] text-[#737b75]">
+                  Meal
+                </span>
+
+                <select
+                  value={meal}
+                  onChange={(event) => setMeal(event.target.value)}
+                  className="min-h-11 rounded-lg border border-[#d4dad5] bg-white px-3 text-sm"
+                >
+                  <option value="">Any meal</option>
+
+                  {meals.map((item) => (
+                    <option
+                      key={item}
+                      value={item}
+                    >
+                      {item.charAt(0).toUpperCase() + item.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </details>
+
+          <label className="flex min-h-11 items-center gap-2 rounded-full border border-[#d4dad5] bg-white px-3.5">
+            <span className="text-xs font-semibold uppercase tracking-[.06em] text-[#7c847e]">
+              Sort
+            </span>
+
+            {sort === "closest" ? (
+              <Crosshair
+                size={13}
+                className="text-[#173f30]"
+              />
+            ) : null}
+
+            <select
+              value={sort}
+              onChange={(event) =>
+                chooseSort(event.target.value as SortMode)
+              }
+              className="bg-transparent text-sm font-medium text-[#3f4942] outline-none"
+              aria-label="Sort restaurants"
             >
-              {value === "closest" ? <Crosshair size={14} className="mr-1.5 inline" /> : null}{label}
-            </button>
-          ))}
+              <option value="open">
+                Open first
+              </option>
+              <option value="closest">
+                Closest
+              </option>
+              <option value="votes">
+                Most local votes
+              </option>
+              <option value="az">
+                A–Z
+              </option>
+            </select>
+          </label>
 
           {hasFilters ? <button type="button" onClick={clearFilters} className="min-h-11 px-3 text-sm font-semibold text-[#173f30] hover:underline">Clear</button> : null}
 
           <div className="ml-auto flex rounded-lg border border-[#d5d9d4] bg-white p-1">
             <button type="button" onClick={() => setView("list")} aria-pressed={view === "list"} className={`grid min-h-10 min-w-10 place-items-center rounded-md ${view === "list" ? "bg-[#f0f3ef] text-[#173f30]" : "text-[#69716b]"}`} aria-label="List view"><List size={17} /></button>
-            <button type="button" onClick={() => setView("map")} aria-pressed={view === "map"} className={`grid min-h-10 min-w-10 place-items-center rounded-md ${view === "map" ? "bg-[#f0f3ef] text-[#173f30]" : "text-[#69716b]"}`} aria-label="Map view"><Map size={17} /></button>
+            <button type="button" onClick={() => setView("map")} aria-pressed={view === "map"} className={`grid min-h-10 min-w-10 place-items-center rounded-md ${view === "map" ? "bg-[#f0f3ef] text-[#173f30]" : "text-[#69716b]"}`} aria-label="Map preview"><Map size={17} /></button>
           </div>
         </div>
 
@@ -212,7 +272,7 @@ export function RestaurantDirectory({
       ) : (
         <div className="mt-3 overflow-hidden rounded-2xl border border-[#dfe3de] bg-[#eef2ec]">
           <div className="border-b border-[#d8ddd8] bg-white px-5 py-3 text-sm text-[#68716b]">
-            Valley map · approximate corridor view
+            Map preview · approximate valley corridor
           </div>
           <div className="relative min-h-[520px] overflow-hidden">
             <div className="absolute bottom-[7%] left-[14%] top-[7%] w-[5px] rotate-[18deg] rounded-full bg-[#c5cec5]" aria-hidden="true" />
@@ -243,17 +303,6 @@ export function RestaurantDirectory({
         </div>
       )}
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        {CUISINES.filter((item) => item.value).map((item) => (
-          <Link
-            key={item.value}
-            href={`/restaurants?cuisine=${item.value}${town ? `&town=${encodeURIComponent(town)}` : ""}`}
-            className="min-h-11 rounded-full border border-[#d8dad4] bg-white px-4 py-3 text-sm font-medium text-[#454d47] hover:border-[#9ca79f]"
-          >
-            {cuisineLabel(item.value)}
-          </Link>
-        ))}
-      </div>
     </>
   );
 }

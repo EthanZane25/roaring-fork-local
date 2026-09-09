@@ -49,9 +49,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Enter the phone number and verification code." }, { status: 400 });
   }
 
-  const result = await checkPhoneVerification(phone, code);
-  if (!result.ok) {
-    return NextResponse.json({ error: result.error || "The code was not approved." }, { status: 400 });
+  const devPhoneBypass =
+    process.env.NODE_ENV !== "production" &&
+    process.env.DEV_PHONE_BYPASS === "true";
+
+  if (devPhoneBypass) {
+    if (code !== "000000") {
+      return NextResponse.json(
+        { error: "Development code is 000000." },
+        { status: 400 }
+      );
+    }
+  } else {
+    const result = await checkPhoneVerification(phone, code);
+
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: result.error || "The code was not approved." },
+        { status: 400 }
+      );
+    }
   }
 
   const phoneHash = hashSignal("verified-phone", phone);

@@ -9,6 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default async function NewMarketplaceListingPage() {
+  const devBypass =
+    process.env.NODE_ENV !== "production" &&
+    process.env.DEV_MARKETPLACE_BYPASS === "true";
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -43,6 +47,7 @@ export default async function NewMarketplaceListingPage() {
         phoneVerified={phoneVerified}
         phoneLast4={last4}
         requiresFreshCode={requiresFreshCode}
+        devBypass={devBypass}
       />
     </main>
   );

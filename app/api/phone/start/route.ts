@@ -49,6 +49,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Enter a valid mobile number including area code." }, { status: 400 });
   }
 
+  // DEV_PHONE_BYPASS_EARLY
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.DEV_PHONE_BYPASS === "true"
+  ) {
+    return NextResponse.json({
+      ok: true,
+      phone: body?.phone ? phone : undefined,
+      last4: phone.slice(-4),
+      devBypass: true
+    });
+  }
+
   const ip = getClientIp(request.headers);
   const phoneHash = hashSignal("sms-rate-phone", phone);
   const ipHash = hashSignal("sms-rate-ip", ip);

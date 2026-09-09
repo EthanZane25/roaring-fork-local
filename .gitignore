@@ -13,3 +13,9 @@ coverage
 .rfl-backups/
 
 .design-backup/
+
+# Local secrets
+.env
+.env.local
+*.pem
+*.key

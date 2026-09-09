@@ -38,14 +38,14 @@ export default async function RestaurantsPage({
                 <Link href={`/restaurants/${restaurant.slug}`} key={restaurant.id} className="group overflow-hidden rounded-xl border border-[#dde2dc] bg-white">
                   <div className="relative aspect-[16/9] overflow-hidden bg-[#e9ebe7]">
                     {restaurant.imageUrl ? <Image src={restaurant.imageUrl} alt={restaurant.name} fill className="object-cover transition duration-500 group-hover:scale-[1.025]" sizes="33vw" /> : null}
-                    <span className="absolute left-3 top-3 rounded-md bg-white/94 px-2.5 py-1 text-[11px] font-bold">#{index + 1} local pick</span>
+                    <span className="absolute left-3 top-3 rounded-md bg-white/94 px-2.5 py-1 text-[11px] font-bold">#{index + 1} by local votes</span>
                   </div>
                   <div className="p-4">
                     <h2 className="text-lg font-semibold">{restaurant.name}</h2>
                     <p className="mt-1 flex items-center gap-1 text-xs text-[#6c746e]"><MapPin size={12} /> {getTown(restaurant.town)?.name} · {cuisineLabel(restaurant.cuisine)}</p>
                     <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium">
                       {restaurant.openNow === true ? <span className="rounded-full bg-[#e8f2ea] px-2 py-1 text-[#2d6546]">Open now</span> : null}
-                      {restaurant.verifiedAt ? <span className="inline-flex items-center gap-1 text-[#527061]"><BadgeCheck size={13} /> Verified</span> : null}
+                      {restaurant.verifiedAt ? <span className="inline-flex items-center gap-1 text-[#527061]"><BadgeCheck size={13} /> Listing verified</span> : null}
                     </div>
                   </div>
                 </Link>

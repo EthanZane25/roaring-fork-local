@@ -10,16 +10,20 @@ import { Turnstile } from "@/components/turnstile";
 export function NewListingForm({
   phoneVerified,
   phoneLast4,
-  requiresFreshCode
+  requiresFreshCode,
+  devBypass = false
 }: {
   phoneVerified: boolean;
   phoneLast4?: string | null;
   requiresFreshCode: boolean;
+  devBypass?: boolean;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
-  const [phoneReady, setPhoneReady] = useState(phoneVerified && !requiresFreshCode);
+  const [phoneReady, setPhoneReady] = useState(
+    devBypass || (phoneVerified && !requiresFreshCode)
+  );
   const [turnstileToken, setTurnstileToken] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -63,13 +67,24 @@ export function NewListingForm({
 
   return (
     <div className="grid gap-5">
-      <PhoneVerification
-        verified={phoneVerified}
-        last4={phoneLast4}
-        purpose="create_listing"
-        requireFreshCode={requiresFreshCode}
-        onVerified={() => setPhoneReady(true)}
-      />
+      {devBypass ? (
+        <div className="border border-[#d9dbd5] bg-white p-5">
+          <p className="text-sm font-semibold text-[#173f30]">
+            Development preview
+          </p>
+          <p className="mt-2 text-sm text-[#626862]">
+            Mobile verification is temporarily bypassed so Marketplace can be tested.
+          </p>
+        </div>
+      ) : (
+        <PhoneVerification
+          verified={phoneVerified}
+          last4={phoneLast4}
+          purpose="create_listing"
+          requireFreshCode={requiresFreshCode}
+          onVerified={() => setPhoneReady(true)}
+        />
+      )}
 
       <form onSubmit={submit} className="card p-6 sm:p-8">
         <div className="grid gap-5 sm:grid-cols-2">

@@ -81,9 +81,42 @@ export async function getListings(input?: { town?: string; category?: string; li
 export async function getListing(slug: string) {
   if (!hasSupabaseEnv()) return demoListings.find((x) => x.slug === slug) ?? null;
   const supabase = await createClient();
-  const { data, error } = await supabase.from("marketplace_listings").select("*").eq("slug", slug).maybeSingle();
+  const { data, error } = await supabase
+    .from("marketplace_listings")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
   if (error) throw error;
-  return data ? mapListing(data) : null;
+  if (!data) return null;
+
+  if (
+    data.source_type === "external" &&
+    data.source_expires_at &&
+    new Date(data.source_expires_at).getTime() <= Date.now()
+  ) {
+    return null;
+  }
+
+  return mapListing(data);
+}
+
+export async function getListingImages(listingId: string) {
+  if (!hasSupabaseEnv()) return [];
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("marketplace_images")
+    .select("public_url,sort_order")
+    .eq("listing_id", listingId)
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? [])
+    .map((row: any) => row.public_url)
+    .filter(Boolean);
 }
 
 async function contestVoteCounts(contestId: string) {
@@ -360,7 +393,12 @@ function mapListing(row: any): MarketplaceListing {
     createdAt: row.created_at,
     sellerName: row.seller_name ?? "Local seller",
     sellerVerified: Boolean(row.seller_verified),
-    status: row.status ?? "active"
+    status: row.status ?? "active",
+    condition: row.condition ?? undefined,
+    locationNote: row.location_note ?? undefined,
+    sourceType: row.source_type === "external" ? "external" : "local",
+    sourceName: row.source_name ?? undefined,
+    sourceUrl: row.source_url ?? undefined
   };
 }
 

@@ -13,10 +13,8 @@ import {
   UtensilsCrossed
 } from "lucide-react";
 
-import { ListingCard } from "@/components/listing-card";
 import {
   getEvents,
-  getListings,
   getRestaurants
 } from "@/lib/data";
 import {
@@ -89,15 +87,11 @@ export default async function HomePage({
 }) {
   const { town } = await searchParams;
 
-  const [restaurants, listings, events] =
+  const [restaurants, events] =
     await Promise.all([
       getRestaurants({
         town,
         limit: 4
-      }),
-      getListings({
-        town,
-        limit: 3
       }),
       getEvents({
         town,
@@ -107,7 +101,7 @@ export default async function HomePage({
 
   return (
     <main>
-      <section className="relative isolate min-h-[518px] overflow-hidden">
+      <section className="relative isolate min-h-[470px] overflow-hidden sm:min-h-[518px]">
         <Image
           src="/roaring-fork-valley-hero.jpg"
           alt="Roaring Fork Valley in autumn"
@@ -121,9 +115,9 @@ export default async function HomePage({
 
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,17,12,.42)_0%,rgba(10,17,12,.16)_55%,rgba(10,17,12,.08)_100%)]" />
 
-        <div className="container-site relative z-10 flex min-h-[518px] items-center">
+        <div className="container-site relative z-10 flex min-h-[470px] items-center sm:min-h-[518px]">
           <div className="w-full max-w-[560px] py-12">
-            <h1 className="max-w-[530px] font-serif text-[52px] leading-[.98] tracking-[-.025em] text-white sm:text-[60px] lg:text-[64px]">
+            <h1 className="max-w-[530px] font-serif text-[44px] leading-[.98] tracking-[-.025em] text-white sm:text-[60px] lg:text-[64px]">
               The valley, all in one
               <br />
               place.
@@ -166,7 +160,7 @@ export default async function HomePage({
               </label>
             </form>
 
-            <div className="mt-5 flex flex-wrap items-center gap-2">
+            <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:pb-0">
               {TOWNS.map(([label, slug], index) => {
                 const active =
                   slug === ""
@@ -179,7 +173,7 @@ export default async function HomePage({
                     className="flex items-center gap-2"
                   >
                     {index > 0 ? (
-                      <span className="text-white/80">
+                      <span className="hidden text-white/80 sm:inline">
                         ·
                       </span>
                     ) : null}
@@ -305,102 +299,76 @@ export default async function HomePage({
       </section>
 
       <section className="border-y border-[#dedfd9] bg-white">
-        <div className="container-site grid gap-12 py-14 lg:grid-cols-[1.15fr_.85fr]">
-          <div>
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <p className="eyebrow">
-                  Marketplace
-                </p>
+        <div className="container-site py-14">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow">
+                Around town
+              </p>
 
-                <h2 className="mt-3 font-serif text-[36px] leading-none">
-                  Fresh from the valley
-                </h2>
-              </div>
-
-              <Link
-                href={withTown(
-                  "/marketplace",
-                  town
-                )}
-                className="text-sm font-semibold text-[#173f30]"
-              >
-                Browse all →
-              </Link>
+              <h2 className="mt-3 font-serif text-[36px] leading-none">
+                What’s happening
+              </h2>
             </div>
 
-            {listings.length ? (
-              <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {listings.map(
-                  listing => (
-                    <ListingCard
-                      key={listing.id}
-                      listing={listing}
-                    />
-                  )
-                )}
-              </div>
+            <Link
+              href={withTown("/events", town)}
+              className="text-sm font-semibold text-[#173f30]"
+            >
+              See all events →
+            </Link>
+          </div>
+
+          <div className="mt-7 grid gap-0 border-y border-[#e0e1dc] md:grid-cols-3">
+            {events.length ? (
+              events.map((event, index) => (
+                <Link
+                  key={event.id}
+                  href={withTown("/events", town)}
+                  className={`py-5 md:px-6 ${
+                    index
+                      ? "border-t border-[#e7e8e3] md:border-l md:border-t-0"
+                      : ""
+                  }`}
+                >
+                  <span className="font-serif text-lg text-[#173f30]">
+                    {eventDate(event.startsAt)}
+                  </span>
+
+                  <strong className="mt-2 block text-sm">
+                    {event.title}
+                  </strong>
+
+                  <span className="mt-1 block text-xs text-[#737a74]">
+                    {event.venue} · {getTown(event.town)?.name}
+                  </span>
+                </Link>
+              ))
             ) : (
-              <p className="mt-7 text-sm text-[#6b736d]">
-                No fresh listings yet.
+              <p className="py-6 text-sm text-[#6b736d]">
+                Nothing listed yet.
               </p>
             )}
           </div>
 
-          <div>
-            <p className="eyebrow">
-              Around town
-            </p>
+          <div className="mt-9 flex flex-col gap-4 border-t border-[#dedfd9] pt-7 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="eyebrow">
+                Marketplace
+              </p>
 
-            <h2 className="mt-3 font-serif text-[36px] leading-none">
-              What’s happening
-            </h2>
-
-            <div className="mt-7 border-y border-[#e0e1dc]">
-              {events.length ? (
-                events.map(
-                  (event, index) => (
-                    <Link
-                      key={event.id}
-                      href={withTown(
-                        "/events",
-                        town
-                      )}
-                      className={`grid grid-cols-[70px_1fr] gap-4 py-5 ${
-                        index
-                          ? "border-t border-[#e7e8e3]"
-                          : ""
-                      }`}
-                    >
-                      <span className="font-serif text-lg text-[#173f30]">
-                        {eventDate(
-                          event.startsAt
-                        )}
-                      </span>
-
-                      <span>
-                        <strong className="block text-sm">
-                          {event.title}
-                        </strong>
-
-                        <span className="mt-1 block text-xs text-[#737a74]">
-                          {event.venue} ·{" "}
-                          {
-                            getTown(
-                              event.town
-                            )?.name
-                          }
-                        </span>
-                      </span>
-                    </Link>
-                  )
-                )
-              ) : (
-                <p className="py-6 text-sm text-[#6b736d]">
-                  Nothing listed yet.
-                </p>
-              )}
+              <p className="mt-2 text-sm text-[#646d66]">
+                Buy and sell locally from Aspen to Rifle.
+              </p>
             </div>
+
+            <Link
+              href={withTown("/marketplace", town)}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#173f30]"
+            >
+              Browse Marketplace
+              <ArrowRight size={15} />
+            </Link>
           </div>
         </div>
       </section>

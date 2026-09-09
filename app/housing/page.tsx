@@ -45,7 +45,17 @@ export default async function HousingPage({ searchParams }: { searchParams: Prom
             <span className="text-[13px] text-[#5f665f] sm:text-right">{currency(listing.price)} / mo</span>
           </article>
         ))}
-        {!listings.length ? <p className="py-6 text-sm text-[#606860]">No active housing listings match this town right now.</p> : null}
+        {!listings.length ? (
+          <div className="py-10">
+            <h2 className="text-lg font-semibold">
+              No current housing listings yet
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-[#606860]">
+              We’re building a current local housing directory for rooms,
+              rentals and housing opportunities across the valley.
+            </p>
+          </div>
+        ) : null}
       </div>
     </main>
   );
