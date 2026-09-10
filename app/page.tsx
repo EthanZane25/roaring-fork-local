@@ -200,11 +200,11 @@ export default async function HomePage({
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow">
-              "Sponsored"
+              Sponsored
             </p>
 
             <h2 className="mt-3 font-serif text-[38px] leading-none tracking-[-.03em] sm:text-[46px]">
-              "Featured restaurant partners"
+              Featured restaurant partners
             </h2>
           </div>
 
@@ -220,8 +220,7 @@ export default async function HomePage({
           </Link>
         </div>
 
-        {restaurants.length ? (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {restaurants.map(
               restaurant => (
                 <Link
@@ -255,9 +254,7 @@ export default async function HomePage({
               )
             )}
           </div>
-        ) : null}
       </section>
-
       ) : null}
 
       <section className="border-y border-[#dedfd9] bg-white">
