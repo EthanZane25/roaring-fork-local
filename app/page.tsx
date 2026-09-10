@@ -21,15 +21,7 @@ import {
   cuisineLabel,
   getTown
 } from "@/lib/constants";
-
-const TOWNS = [
-  ["All", ""],
-  ["Aspen", "aspen"],
-  ["Basalt", "basalt"],
-  ["Carbondale", "carbondale"],
-  ["Glenwood", "glenwood-springs"],
-  ["Rifle", "rifle"]
-] as const;
+import { HomeNearbyControl } from "@/components/home-nearby-control";
 
 const CATEGORIES = [
   {
@@ -86,6 +78,7 @@ export default async function HomePage({
   searchParams: Promise<{ town?: string }>;
 }) {
   const { town } = await searchParams;
+  const activeTown = town ? getTown(town) : undefined;
 
   const [restaurants, events] =
     await Promise.all([
@@ -160,42 +153,7 @@ export default async function HomePage({
               </label>
             </form>
 
-            <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:pb-0">
-              {TOWNS.map(([label, slug], index) => {
-                const active =
-                  slug === ""
-                    ? !town
-                    : town === slug;
-
-                return (
-                  <div
-                    key={label}
-                    className="flex items-center gap-2"
-                  >
-                    {index > 0 ? (
-                      <span className="hidden text-white/80 sm:inline">
-                        ·
-                      </span>
-                    ) : null}
-
-                    <Link
-                      href={
-                        slug
-                          ? `/?town=${slug}`
-                          : "/"
-                      }
-                      className={`rounded-full border px-4 py-2 text-[13px] font-medium transition ${
-                        active
-                          ? "border-white bg-white/10 text-white"
-                          : "border-white/90 bg-transparent text-white hover:bg-white/10"
-                      }`}
-                    >
-                      {label}
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
+            <HomeNearbyControl town={town} />
           </div>
         </div>
       </section>
@@ -236,11 +194,13 @@ export default async function HomePage({
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow">
-              Eat local
+              {activeTown ? `Near ${activeTown.name}` : "Eat local"}
             </p>
 
             <h2 className="mt-3 font-serif text-[38px] leading-none tracking-[-.03em] sm:text-[46px]">
-              Restaurants worth knowing
+              {activeTown
+                ? `Restaurants near ${activeTown.name}`
+                : "Restaurants worth knowing"}
             </h2>
           </div>
 
@@ -303,11 +263,13 @@ export default async function HomePage({
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="eyebrow">
-                Around town
+                {activeTown ? `Near ${activeTown.name}` : "Around town"}
               </p>
 
               <h2 className="mt-3 font-serif text-[36px] leading-none">
-                What’s happening
+                {activeTown
+                  ? `What’s happening near ${activeTown.name}`
+                  : "What’s happening"}
               </h2>
             </div>
 
