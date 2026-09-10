@@ -80,17 +80,22 @@ export default async function HomePage({
   const { town } = await searchParams;
   const activeTown = town ? getTown(town) : undefined;
 
-  const [restaurants, events] =
+  const [allRestaurants, events] =
     await Promise.all([
       getRestaurants({
-        town,
-        limit: 4
+        town
       }),
       getEvents({
         town,
         limit: 3
       })
     ]);
+
+  // Homepage placement is paid placement only.
+  // Every restaurant remains available in the full restaurant directory.
+  const restaurants = allRestaurants
+    .filter((restaurant) => restaurant.isAdvertiser)
+    .slice(0, 4);
 
   return (
     <main>
@@ -190,17 +195,16 @@ export default async function HomePage({
         </div>
       </section>
 
+      {restaurants.length ? (
       <section className="container-site py-14 sm:py-16">
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow">
-              {activeTown ? `Near ${activeTown.name}` : "Eat local"}
+              "Sponsored"
             </p>
 
             <h2 className="mt-3 font-serif text-[38px] leading-none tracking-[-.03em] sm:text-[46px]">
-              {activeTown
-                ? `Restaurants near ${activeTown.name}`
-                : "Restaurants worth knowing"}
+              "Featured restaurant partners"
             </h2>
           </div>
 
@@ -251,12 +255,10 @@ export default async function HomePage({
               )
             )}
           </div>
-        ) : (
-          <p className="mt-8 text-sm text-[#6a736c]">
-            No restaurants are listed yet.
-          </p>
-        )}
+        ) : null}
       </section>
+
+      ) : null}
 
       <section className="border-y border-[#dedfd9] bg-white">
         <div className="container-site py-14">
