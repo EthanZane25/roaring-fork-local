@@ -11,11 +11,14 @@ import {
   cuisineLabel,
   getTown
 } from "@/lib/constants";
+import { formatDistanceMiles } from "@/lib/geo";
 
 export function RestaurantRow({
-  restaurant
+  restaurant,
+  distance
 }: {
   restaurant: Restaurant;
+  distance?: number;
 }) {
   const town = getTown(restaurant.town);
 
@@ -82,6 +85,16 @@ export function RestaurantRow({
             <span>
               {"$".repeat(restaurant.priceLevel)}
             </span>
+
+            {distance !== undefined ? (
+              <>
+                <span aria-hidden="true">·</span>
+
+                <span className="font-semibold text-[#315e49]">
+                  {formatDistanceMiles(distance)}
+                </span>
+              </>
+            ) : null}
           </p>
 
           {restaurant.address ? (
